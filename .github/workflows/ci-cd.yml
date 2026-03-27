@@ -72,8 +72,7 @@ jobs:
           path: dist/
 
       - name: 🔍 List dist contents (debug)
-        run: ls -la dist/
-
+        run: ls -la ./dist/DemoFrontend
       - name: 🌐 Deploy to GitHub Pages
         id: deployment
         uses: peaceiris/actions-gh-pages@v4
