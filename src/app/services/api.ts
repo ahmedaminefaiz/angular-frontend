@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class Api {
-  private apiUrl = 'https://springboot-api-production-ebd2.up.railway.app/api/hello'; // Your Spring Boot base URL
+  private apiUrl = 'https://springboot-api-production-ebd2.up.railway.app/api'; // Your Spring Boot base URL
 
   constructor(private http: HttpClient) {}
 
