@@ -94,4 +94,4 @@ jobs:
         # =========================
       - name: 🔔 Trigger Dokploy deployment
         run: |
-          curl -X POST "${{ secrets.DEPLOY_WEBHOOK_PROD }}"
+          curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}"
