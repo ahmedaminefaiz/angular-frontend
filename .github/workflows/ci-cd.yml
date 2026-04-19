@@ -80,7 +80,11 @@ jobs:
 
         
       - name: 🏗️ Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest .
+        run: |
+          set -e
+          IMAGE="${{ secrets.DOCKER_USERNAME }}/frontend-app:latest"
+          echo "Image = $IMAGE"
+          docker build --progress=plain -t "$IMAGE" .
   
       - name: 🚀 Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
