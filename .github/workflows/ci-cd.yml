@@ -67,14 +67,14 @@ jobs:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
 
-      # - name: 📥 Download build artifact
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: angular-build
-      #     path: dist/
+      - name: 📥 Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: angular-build
+          path: dist/
 
-      # - name: 🔍 Debug dist structure
-      #   run: ls -R ./dist
+      - name: 🔍 Debug dist structure
+        run: ls -R ./dist
 
       # =========================
       # Docker Login
@@ -90,7 +90,9 @@ jobs:
       # Build Docker Image
       # =========================
       - name: 🏗️ Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest .
+        run: |
+         docker build \
+          -t ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest \
 
       # =========================
       # Push Docker Image
