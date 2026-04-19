@@ -80,7 +80,7 @@ jobs:
 
         
       - name: 🏗️ Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend-app .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest .
   
       - name: 🚀 Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
