@@ -89,10 +89,9 @@ jobs:
       - name: 🚀 Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/frontend-app:latest
   
-  
         # =========================
         # Trigger Dokploy deploy (optional)
         # =========================
-        - name: 🔔 Trigger Dokploy deployment
-          if: ${{ secrets.DOKPLOY_WEBHOOK_URL != '' }}
-          run: curl -X POST ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+      - name: 🔔 Trigger Dokploy deployment
+        run: |
+          curl -X POST "${{ secrets.DEPLOY_WEBHOOK_PROD }}"
