@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { LoginRequest, SignupRequest } from '../models/auth.models';
 
 @Injectable({
   providedIn: 'root'
@@ -12,5 +13,13 @@ export class Api {
 
   getHello(): Observable<string> {
     return this.http.get(this.apiUrl + '/hello', { responseType: 'text' });
+  }
+
+  login(credentials: LoginRequest): Observable<string> {
+    return this.http.post(this.apiUrl + '/auth/login', credentials, { responseType: 'text' });
+  }
+
+  signup(data: SignupRequest): Observable<string> {
+    return this.http.post(this.apiUrl + '/auth/register', data, { responseType: 'text' });
   }
 }
