@@ -1,0 +1,23 @@
+<!-- [formGroup]="form" links this <form> tag to the FormGroup defined in the .ts -->
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+  <!-- formControlName links each input to its FormControl by name -->
+  <input formControlName="email" type="email" placeholder="Email" />
+
+  <input formControlName="nom" type="text" placeholder="Nom" />
+
+  <input formControlName="prenom" type="text" placeholder="Prénom" />
+
+  <input formControlName="dateNaissance" type="date" placeholder="Date de Naissance" />
+
+  <input formControlName="ville" type="text" placeholder="Ville" />
+
+  <input formControlName="password" type="password" placeholder="Password" />
+
+  <!-- disabled when the form is invalid, so the user can't submit empty fields -->
+  <button type="submit" [disabled]="form.invalid">Register</button>
+
+</form>
+
+<!-- Shows the response from the backend (success or error message) -->
+<p>{{ message }}</p>

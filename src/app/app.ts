@@ -1,10 +1,11 @@
-
+import { RouterLink, RouterOutlet } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 import { Api } from './services/api';
 
 @Component({
   selector: 'app-root',
   standalone: true,
+  imports: [RouterLink, RouterOutlet],
   templateUrl: './app.html'
 })
 export class App implements OnInit {
