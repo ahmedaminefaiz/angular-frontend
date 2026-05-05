@@ -1,22 +1,10 @@
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { Component, OnInit } from '@angular/core';
-import { Api } from './services/api';
+import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterLink, RouterOutlet],
+  imports: [RouterOutlet],
   templateUrl: './app.html'
 })
-export class App implements OnInit {
-  message = '';
-
-  constructor(private api: Api) {}
-
-  ngOnInit(): void {
-    this.api.getHello().subscribe({
-      next: data => this.message = data,
-      error: err => this.message = 'Error connecting to API'
-    });
-  }
-}
+export class App {}
