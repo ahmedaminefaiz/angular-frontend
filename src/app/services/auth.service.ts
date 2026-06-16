@@ -10,8 +10,8 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.base}/login`, credentials);
+  login(credentials: LoginRequest): Observable<LoginResponse | string> {
+    return this.http.post<LoginResponse | string>(`${this.base}/login`, credentials);
   }
 
   register(data: SignupRequest): Observable<string> {

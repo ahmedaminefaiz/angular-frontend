@@ -53,7 +53,10 @@ export class DashboardLayoutComponent implements OnInit {
     switch (role) {
       case 'CITOYEN':
         return [
-          { label: 'Tableau de bord', route: '/dashboard/citoyen' }
+          { label: 'Alerts', route: '/dashboard/citoyen/alerts' },
+          { label: 'My Alerts', route: '/dashboard/citoyen/my-alerts' },
+          { label: 'Approved Alerts', route: '/dashboard/citoyen/approved-alerts' },
+          { label: 'Notification', route: '/dashboard/citoyen/notifications' }
         ];
       case 'AGENT':
         return [

@@ -17,8 +17,9 @@ export const routes: Routes = [
         m => m.DashboardLayoutComponent
       ),
     children: [
+      { path: 'citoyen', redirectTo: 'citoyen/alerts', pathMatch: 'full' },
       {
-        path: 'citoyen',
+        path: 'citoyen/:tab',
         canActivate: [roleGuard],
         data: { roles: ['CITOYEN'] },
         loadComponent: () =>

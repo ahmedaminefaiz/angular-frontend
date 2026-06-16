@@ -1,0 +1,428 @@
+<div class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-100 bg-gradient-to-r from-teal-50 to-white p-5 shadow-sm">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-900">Espace citoyen</h2>
+      <p class="text-sm text-slate-600">Gestion des signalements et suivi d'intervention.</p>
+    </div>
+    <button
+      class="inline-flex items-center rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
+      (click)="openCreateForm()"
+    >
+      Signale un incident urbain
+    </button>
+  </div>
+
+  @if (successMessage) {
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+      {{ successMessage }}
+    </div>
+  }
+
+  @if (pageErrorMessage && !hasOpenModal) {
+    <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+      {{ pageErrorMessage }}
+    </div>
+  }
+
+  @if (currentTab === 'alerts' || currentTab === 'my-alerts') {
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-slate-50 text-slate-600">
+            <tr class="border-b border-slate-200">
+              <th class="px-3 py-3 text-left font-medium">Title</th>
+              <th class="px-3 py-3 text-left font-medium">Nom prenom</th>
+              <th class="px-3 py-3 text-left font-medium">Priority</th>
+              <th class="px-3 py-3 text-left font-medium">Category</th>
+              <th class="px-3 py-3 text-left font-medium">Status</th>
+              <th class="px-3 py-3 text-right font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isActiveTableLoading) {
+              @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
+                <tr class="border-b border-slate-100">
+                  <td colspan="6" class="px-3 py-3">
+                    <div class="h-5 w-full animate-pulse rounded bg-slate-100"></div>
+                  </td>
+                </tr>
+              }
+            } @else if (activePage.content.length === 0) {
+              <tr>
+                <td colspan="6" class="px-3 py-8 text-center text-slate-400">Aucune alerte trouvée.</td>
+              </tr>
+            } @else {
+              @for (alert of activePage.content; track alert.id) {
+                <tr class="border-b border-slate-100 transition"
+                  [class.bg-white]="getRowToneClass(alert) === 'normal'"
+                  [class.bg-slate-50]="getRowToneClass(alert) === 'muted'"
+                  [class.bg-amber-50]="getRowToneClass(alert) === 'warning'"
+                  [class.bg-emerald-50]="getRowToneClass(alert) === 'success'"
+                  [class.bg-rose-50]="getRowToneClass(alert) === 'danger'">
+                  <td class="px-3 py-3 font-medium text-slate-900">{{ alert.title }}</td>
+                  <td class="px-3 py-3 text-slate-600">{{ alert.user.nom }} {{ alert.user.prenom }}</td>
+                  <td class="px-3 py-3">
+                    <span class="rounded-full px-2 py-1 text-xs font-semibold"
+                      [class.bg-emerald-100]="alert.priority === 'LOW'"
+                      [class.text-emerald-700]="alert.priority === 'LOW'"
+                      [class.bg-amber-100]="alert.priority === 'MEDIUM'"
+                      [class.text-amber-700]="alert.priority === 'MEDIUM'"
+                      [class.bg-orange-100]="alert.priority === 'HIGH'"
+                      [class.text-orange-700]="alert.priority === 'HIGH'"
+                      [class.bg-rose-100]="alert.priority === 'CRITICAL'"
+                      [class.text-rose-700]="alert.priority === 'CRITICAL'">
+                      {{ alert.priority }}
+                    </span>
+                  </td>
+                  <td class="px-3 py-3 text-slate-600">{{ alert.category.name }}</td>
+                  <td class="px-3 py-3">
+                    <span class="rounded-full px-2 py-1 text-xs font-semibold"
+                      [class.bg-slate-100]="alert.status === 'NEW'"
+                      [class.text-slate-700]="alert.status === 'NEW'"
+                      [class.bg-amber-100]="alert.status === 'IN_PROGRESS'"
+                      [class.text-amber-700]="alert.status === 'IN_PROGRESS'"
+                      [class.bg-emerald-100]="alert.status === 'RESOLVED'"
+                      [class.text-emerald-700]="alert.status === 'RESOLVED'"
+                      [class.bg-rose-100]="alert.status === 'REJECTED'"
+                      [class.text-rose-700]="alert.status === 'REJECTED'">
+                      {{ alert.status }}
+                    </span>
+                  </td>
+                  <td class="px-3 py-3">
+                    <div class="flex items-center justify-end gap-2">
+                      <button class="rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
+                        title="Details"
+                        (click)="openAlertDetails(alert)">
+                        Details
+                      </button>
+                      @if (canManage(alert)) {
+                        <button class="rounded border border-sky-200 px-2 py-1 text-xs text-sky-700 hover:bg-sky-50"
+                          title="Add Media"
+                          (click)="openMediaForm(alert)">
+                          Add media
+                        </button>
+                        <button class="rounded border border-amber-200 px-2 py-1 text-xs text-amber-700 hover:bg-amber-50"
+                          title="Modifier"
+                          (click)="openEditForm(alert)">
+                          Modify
+                        </button>
+                        <button class="rounded border border-rose-200 px-2 py-1 text-xs text-rose-700 hover:bg-rose-50"
+                          title="Supprimer"
+                          (click)="deleteAlert(alert.id)">
+                          Delete
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-between border-t border-slate-200 px-4 py-3">
+        <p class="text-xs text-slate-500">
+          Page {{ activePage.number + 1 }} / {{ activePage.totalPages || 1 }} - {{ activePage.totalElements }} éléments
+        </p>
+        <div class="flex items-center gap-2">
+          <button class="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 disabled:opacity-40"
+            [disabled]="activePage.number === 0"
+            (click)="changePage(activePage.number - 1)">
+            Précédent
+          </button>
+          <button class="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 disabled:opacity-40"
+            [disabled]="activePage.number + 1 >= activePage.totalPages"
+            (click)="changePage(activePage.number + 1)">
+            Suivant
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (currentTab === 'approved-alerts') {
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      @if (problemsLoading) {
+        @for (_ of [1,2,3]; track $index) {
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-3 h-28 animate-pulse rounded-lg bg-emerald-100"></div>
+            <div class="h-4 w-2/3 animate-pulse rounded bg-slate-100"></div>
+          </div>
+        }
+      } @else if (problemsPage.content.length === 0) {
+        <div class="col-span-full rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-400">
+          Aucun regroupement de signalements pour l'instant.
+        </div>
+      } @else {
+        @for (problem of problemsPage.content; track problem.id) {
+          <div class="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="mb-3 rounded-lg bg-emerald-100 p-4 text-emerald-800">
+              <p class="font-semibold">{{ problem.title }}</p>
+              <p class="mt-1 text-xs">{{ problem.status }}</p>
+              <p class="mt-3 text-xs">Créé: {{ problem.createdAt | date:'short' }}</p>
+              <p class="text-xs">Agent assigné: {{ getProblemAssignedName(problem) }}</p>
+            </div>
+            <div class="mt-auto flex justify-end">
+              <button
+                title="details"
+                class="rounded-full border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"
+                (click)="openProblemDetails(problem)"
+              >
+                i
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  @if (currentTab === 'notifications') {
+    <div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-400 shadow-sm">
+      Notification: section réservée pour une prochaine itération.
+    </div>
+  }
+</div>
+
+@if (showAlertModal && selectedAlert) {
+  <div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="closeAllModals()">
+    <div class="mx-auto mt-8 max-w-3xl rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-900">Détails alerte #{{ selectedAlert.id }}</h3>
+        <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="closeAllModals()">X</button>
+      </div>
+      <div class="grid gap-3 md:grid-cols-2">
+        <p><strong>Title:</strong> {{ selectedAlert.title }}</p>
+        <p><strong>Status:</strong> {{ selectedAlert.status }}</p>
+        <p><strong>Priority:</strong> {{ selectedAlert.priority }}</p>
+        <p><strong>Category:</strong> {{ selectedAlert.category.name }}</p>
+        <p class="md:col-span-2"><strong>Description:</strong> {{ selectedAlert.description }}</p>
+        <p><strong>Nom prenom:</strong> {{ selectedAlert.user.nom }} {{ selectedAlert.user.prenom }}</p>
+        <p><strong>Address:</strong> {{ selectedAlert.address || '-' }}</p>
+        <p><strong>Latitude:</strong> {{ selectedAlert.latitude }}</p>
+        <p><strong>Longitude:</strong> {{ selectedAlert.longitude }}</p>
+      </div>
+      <div class="mt-4 overflow-hidden rounded-lg border border-slate-200">
+        <iframe
+          title="map"
+          class="h-64 w-full"
+          [src]="safeMapUrl(selectedAlert.latitude, selectedAlert.longitude)"
+        ></iframe>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showProblemModal && selectedProblem) {
+  <div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="closeAllModals()">
+    <div class="mx-auto mt-6 max-h-[88vh] max-w-4xl overflow-auto rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-900">Détails Problem #{{ selectedProblem.id }}</h3>
+        <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="closeAllModals()">X</button>
+      </div>
+      <div class="grid gap-2 md:grid-cols-2">
+        <p><strong>Title:</strong> {{ selectedProblem.title }}</p>
+        <p><strong>Status:</strong> {{ selectedProblem.status }}</p>
+        <p class="md:col-span-2"><strong>Description:</strong> {{ selectedProblem.description }}</p>
+        <p><strong>Created at:</strong> {{ selectedProblem.createdAt | date:'short' }}</p>
+        <p><strong>Updated at:</strong> {{ selectedProblem.updatedAt | date:'short' }}</p>
+      </div>
+      <div class="mt-4 rounded-lg border border-slate-200 p-3">
+        <p class="mb-2 text-sm font-semibold text-slate-700">Agent assigné</p>
+        <p class="text-sm text-slate-600">{{ getProblemAssignedName(selectedProblem) }}</p>
+      </div>
+      <div class="mt-4 rounded-lg border border-slate-200 p-3">
+        <p class="mb-2 text-sm font-semibold text-slate-700">Status history</p>
+        @if (!selectedProblem.statusHistory.length) {
+          <p class="text-sm text-slate-400">Aucun historique.</p>
+        } @else {
+          <ul class="space-y-2">
+            @for (statusHistory of selectedProblem.statusHistory; track statusHistory.id) {
+              <li class="rounded border border-slate-200 p-2 text-sm">
+                <p class="font-medium text-slate-800">{{ statusHistory.previousStatus }} -> {{ statusHistory.newStatus }}</p>
+                <p class="text-xs text-slate-500">{{ statusHistory.changedBy }} - {{ statusHistory.changedAt | date:'short' }}</p>
+                @if (statusHistory.comment) {
+                  <p class="mt-1 text-xs text-slate-600">{{ statusHistory.comment }}</p>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (showAlertFormModal) {
+  <div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="closeAllModals()">
+    <div class="mx-auto mt-6 max-h-[90vh] max-w-2xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+      <div class="mb-5 flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-teal-600">Signalement citoyen</p>
+          <h3 class="mt-1 text-xl font-bold text-slate-900">
+            {{ editingAlert ? 'Modifier l\'incident' : 'Signaler un incident urbain' }}
+          </h3>
+          <p class="mt-1 text-sm text-slate-500">Décrivez le problème et indiquez sa localisation au Maroc.</p>
+        </div>
+        <button
+          type="button"
+          class="shrink-0 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+          (click)="closeAllModals()"
+        >
+          X
+        </button>
+      </div>
+      <form [formGroup]="alertForm" class="grid gap-3 md:grid-cols-2" (ngSubmit)="submitAlertForm()">
+        <div class="md:col-span-2">
+          <label class="text-sm font-medium text-slate-700">Titre</label>
+          <input
+            class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+            [class.border-slate-300]="!fieldInvalid('title')"
+            [class.border-rose-400]="fieldInvalid('title')"
+            formControlName="title"
+          />
+          @if (fieldInvalid('title')) {
+            <p class="mt-1 text-xs text-rose-600">{{ fieldError('title') }}</p>
+          }
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-sm font-medium text-slate-700">Description</label>
+          <textarea
+            class="mt-1 min-h-24 w-full rounded-lg border px-3 py-2 text-sm"
+            [class.border-slate-300]="!fieldInvalid('description')"
+            [class.border-rose-400]="fieldInvalid('description')"
+            formControlName="description"
+          ></textarea>
+          @if (fieldInvalid('description')) {
+            <p class="mt-1 text-xs text-rose-600">{{ fieldError('description') }}</p>
+          }
+        </div>
+
+        <section class="md:col-span-2 rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-4">
+          <p class="text-sm font-semibold text-slate-800">Localisation</p>
+          <p class="mt-0.5 text-xs text-slate-500">Obligatoire — sélection sur la carte ou position GPS actuelle (Maroc).</p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="rounded-lg border border-teal-200 bg-white px-3 py-2 text-sm font-medium text-teal-800 shadow-sm hover:bg-teal-50"
+              (click)="openLocationMap()"
+            >
+              Ouvrir la carte
+            </button>
+            <button
+              type="button"
+              class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              [disabled]="locating"
+              (click)="useCurrentLocation()"
+            >
+              {{ locating ? 'Localisation…' : 'Ma position actuelle' }}
+            </button>
+          </div>
+          <div class="mt-3 grid gap-3 md:grid-cols-2">
+            <div>
+              <label class="text-sm text-slate-600">Latitude</label>
+              <input
+                class="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700"
+                readonly
+                [value]="formatCoordinate(alertForm.get('latitude')?.value)"
+              />
+            </div>
+            <div>
+              <label class="text-sm text-slate-600">Longitude</label>
+              <input
+                class="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700"
+                readonly
+                [value]="formatCoordinate(alertForm.get('longitude')?.value)"
+              />
+            </div>
+          </div>
+          @if (fieldInvalid('latitude') || fieldInvalid('longitude') || locationFormError) {
+            <p class="mt-2 text-xs text-rose-600">{{ locationFormError || fieldError('latitude') || fieldError('longitude') }}</p>
+          }
+          <div class="mt-3">
+            <label class="text-sm font-medium text-slate-700">Adresse</label>
+            <input
+              class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              formControlName="address"
+              placeholder="Remplie automatiquement depuis la carte (modifiable)"
+            />
+          </div>
+        </section>
+
+        <div>
+          <label class="text-sm font-medium text-slate-700">Catégorie</label>
+          <select
+            class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+            [class.border-slate-300]="!fieldInvalid('categoryId')"
+            [class.border-rose-400]="fieldInvalid('categoryId')"
+            formControlName="categoryId"
+          >
+            <option [ngValue]="null" disabled>Sélectionnez une catégorie</option>
+            @for (cat of categoryList; track cat.id) {
+              <option [ngValue]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+          @if (fieldInvalid('categoryId')) {
+            <p class="mt-1 text-xs text-rose-600">{{ fieldError('categoryId') }}</p>
+          }
+          @if (!categoryList.length) {
+            <p class="mt-1 text-xs text-amber-600">Aucune catégorie chargée. Vérifiez l'API /v1/problem-types.</p>
+          }
+        </div>
+        <div>
+          <label class="text-sm font-medium text-slate-700">Priorité</label>
+          <select class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" formControlName="priority">
+            <option value="LOW">Faible</option>
+            <option value="MEDIUM">Moyenne</option>
+            <option value="HIGH">Élevée</option>
+            <option value="CRITICAL">Critique</option>
+          </select>
+        </div>
+        <div class="md:col-span-2 flex flex-col items-end gap-2 pt-2">
+          @if (formErrorMessage) {
+            <p class="w-full text-right text-xs text-rose-600">{{ formErrorMessage }}</p>
+          }
+          <div class="flex items-center gap-2">
+            <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" (click)="closeAllModals()">Annuler</button>
+            <button type="submit" class="rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700">
+              {{ editingAlert ? 'Mettre à jour' : 'Signaler' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showLocationMapModal) {
+  <app-location-map-picker
+    [initialLat]="mapInitialLat"
+    [initialLng]="mapInitialLng"
+    (confirmed)="onLocationPicked($event)"
+    (cancel)="showLocationMapModal = false"
+  />
+}
+
+@if (showMediaModal && selectedAlert) {
+  <div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="closeAllModals()">
+    <div class="mx-auto mt-8 max-w-xl rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-900">Ajouter media</h3>
+        <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="closeAllModals()">X</button>
+      </div>
+      <form [formGroup]="mediaForm" class="space-y-3" (ngSubmit)="submitMediaForm()">
+        <label class="text-sm">URL média
+          <input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" formControlName="mediaUrl" />
+        </label>
+        <label class="text-sm">Description
+          <textarea class="mt-1 min-h-20 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" formControlName="description"></textarea>
+        </label>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" (click)="closeAllModals()">Annuler</button>
+          <button type="submit" class="rounded-lg bg-sky-600 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-700">Ajouter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

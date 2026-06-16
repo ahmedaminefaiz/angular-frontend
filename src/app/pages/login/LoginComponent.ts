@@ -36,13 +36,38 @@ export class LoginComponent {
 
     this.authService.login(this.form.value as any).subscribe({
       next: (response) => {
-        this.tokenService.setToken(response.token);
-        this.router.navigate([this.dashboardRoute(response.role)]);
+        const token = typeof response === 'string' ? response : response?.token;
+        if (!token) {
+          this.error = 'Réponse de connexion invalide (token manquant).';
+          this.loading = false;
+          return;
+        }
+
+        this.tokenService.setToken(token);
+        const role =
+          (typeof response === 'object' && response?.role
+            ? response.role
+            : this.tokenService.getRole()) ?? null;
+
+        if (!role) {
+          this.error = 'Impossible de déterminer le rôle utilisateur.';
+          this.loading = false;
+          return;
+        }
+
+        this.router.navigate([this.dashboardRoute(role)]);
       },
       error: (err) => {
-        this.error = err.status === 401
-          ? 'Numéro de téléphone ou mot de passe incorrect'
-          : err.error ?? 'Compte non actif';
+        if (err.status === 0) {
+          this.error = 'Impossible de joindre le serveur (CORS ou backend arrêté).';
+        } else if (err.status === 401) {
+          this.error = 'Numéro de téléphone ou mot de passe incorrect';
+        } else {
+          this.error =
+            typeof err.error === 'string'
+              ? err.error
+              : 'Compte non actif ou erreur de connexion';
+        }
         this.loading = false;
       }
     });
@@ -50,7 +75,7 @@ export class LoginComponent {
 
   private dashboardRoute(role: Role): string {
     const routes: Record<Role, string> = {
-      CITOYEN: '/dashboard/citoyen',
+      CITOYEN: '/dashboard/citoyen/alerts',
       AGENT: '/dashboard/agent',
       SUPER_AGENT: '/dashboard/super-agent',
       ADMIN: '/dashboard/admin'

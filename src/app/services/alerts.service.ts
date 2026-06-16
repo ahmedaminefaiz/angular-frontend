@@ -1,0 +1,52 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import {
+  AddMediaRequest,
+  AlertResponse,
+  ApiPage,
+  CreateAlertRequest,
+  UpdateAlertRequest
+} from '../models/alert.models';
+
+@Injectable({ providedIn: 'root' })
+export class AlertsService {
+  private readonly base = `${environment.apiUrl}/v1/alerts`;
+
+  constructor(private readonly http: HttpClient) {}
+
+  getAlerts(page = 0, size = 30): Observable<ApiPage<AlertResponse>> {
+    const params = this.createPageParams(page, size);
+    return this.http.get<ApiPage<AlertResponse>>(this.base, { params });
+  }
+
+  getMyAlerts(page = 0, size = 30): Observable<ApiPage<AlertResponse>> {
+    const params = this.createPageParams(page, size);
+    return this.http.get<ApiPage<AlertResponse>>(`${this.base}/user/my-alerts`, { params });
+  }
+
+  createAlert(payload: CreateAlertRequest): Observable<AlertResponse> {
+    return this.http.post<AlertResponse>(this.base, payload);
+  }
+
+  updateAlert(alertId: number, payload: UpdateAlertRequest): Observable<AlertResponse> {
+    return this.http.put<AlertResponse>(`${this.base}/${alertId}`, payload);
+  }
+
+  deleteAlert(alertId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${alertId}`);
+  }
+
+  addImage(alertId: number, payload: AddMediaRequest): Observable<AlertResponse> {
+    return this.http.post<AlertResponse>(`${this.base}/${alertId}/images`, payload);
+  }
+
+  addVideo(alertId: number, payload: AddMediaRequest): Observable<AlertResponse> {
+    return this.http.post<AlertResponse>(`${this.base}/${alertId}/videos`, payload);
+  }
+
+  private createPageParams(page: number, size: number): HttpParams {
+    return new HttpParams().set('page', String(page)).set('size', String(size));
+  }
+}
