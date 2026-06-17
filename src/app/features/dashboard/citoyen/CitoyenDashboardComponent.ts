@@ -11,13 +11,16 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import {
+  AddMediaRequest,
   AlertResponse,
   ApiErrorResponse,
   ApiPage,
   CreateAlertRequest,
   UpdateAlertRequest
 } from '../../../models/alert.models';
+import { CloudinaryService, CloudinaryResourceType } from '../../../services/cloudinary.service';
 import { ProblemResponse } from '../../../models/problem.models';
 import { TokenService } from '../../../core/services/token.service';
 import { AlertsService } from '../../../services/alerts.service';
@@ -71,16 +74,22 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   selectedProblem: ProblemResponse | null = null;
   editingAlert: AlertResponse | null = null;
 
+  mediaType: CloudinaryResourceType = 'image';
+  selectedFile: File | null = null;
+  uploading = false;
+  deletingMediaUrl: string | null = null;
+  private successMessageTimer: ReturnType<typeof setTimeout> | null = null;
+
   private readonly subscriptions = new Subscription();
 
   readonly alertForm;
-  readonly mediaForm;
 
   constructor(
     private readonly alertsService: AlertsService,
     private readonly problemsService: ProblemsService,
     private readonly problemTypesService: ProblemTypesService,
     private readonly tokenService: TokenService,
+    private readonly cloudinaryService: CloudinaryService,
     private readonly route: ActivatedRoute,
     private readonly fb: FormBuilder,
     private readonly sanitizer: DomSanitizer
@@ -98,10 +107,6 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
       { validators: moroccoLocationValidator }
     );
 
-    this.mediaForm = this.fb.nonNullable.group({
-      mediaUrl: ['', [Validators.required]],
-      description: ['']
-    });
   }
 
   ngOnInit(): void {
@@ -112,6 +117,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.loadingTimers.forEach((timer) => clearTimeout(timer));
+    if (this.successMessageTimer) clearTimeout(this.successMessageTimer);
     this.subscriptions.unsubscribe();
   }
 
@@ -306,8 +312,16 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   openMediaForm(alert: AlertResponse): void {
     this.selectedAlert = alert;
-    this.mediaForm.reset({ mediaUrl: '', description: '' });
+    this.mediaType = 'image';
+    this.selectedFile = null;
+    this.uploading = false;
+    this.formErrorMessage = '';
     this.showMediaModal = true;
+  }
+
+  onFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedFile = input.files?.[0] ?? null;
   }
 
   submitAlertForm(): void {
@@ -326,7 +340,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
         this.alertsService.updateAlert(this.editingAlert.id, updatePayload).subscribe({
           next: () => {
             this.closeAllModals();
-            this.successMessage = 'Votre alerte est modifiée avec succès';
+            this.showSuccess('Votre alerte est modifiée avec succès');
             this.loadAllTabsData();
           },
           error: (err) => (this.formErrorMessage = this.extractApiError(err))
@@ -349,7 +363,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
       this.alertsService.createAlert(createPayload).subscribe({
         next: () => {
           this.closeAllModals();
-          this.successMessage = 'Votre alerte est créée avec succès';
+          this.showSuccess('Votre alerte est créée avec succès');
           this.formErrorMessage = '';
           this.pageErrorMessage = '';
           this.loadAllTabsData();
@@ -360,16 +374,31 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   }
 
   submitMediaForm(): void {
-    if (this.mediaForm.invalid || !this.selectedAlert) return;
+    if (!this.selectedFile || !this.selectedAlert) return;
+    this.uploading = true;
     this.formErrorMessage = '';
+    const alertId = this.selectedAlert.id;
+    const folder = `alerts/${alertId}/${this.mediaType}s`;
+
     this.subscriptions.add(
-      this.alertsService.addImage(this.selectedAlert.id, this.mediaForm.getRawValue()).subscribe({
+      this.cloudinaryService.upload(this.selectedFile, this.mediaType, folder).pipe(
+        switchMap((url: string) => {
+          const payload: AddMediaRequest = { mediaUrl: url };
+          return this.mediaType === 'image'
+            ? this.alertsService.addImage(alertId, payload)
+            : this.alertsService.addVideo(alertId, payload);
+        })
+      ).subscribe({
         next: () => {
+          this.uploading = false;
           this.closeAllModals();
-          this.successMessage = 'Média ajouté avec succès';
+          this.showSuccess(this.mediaType === 'image' ? 'Photo ajoutée avec succès' : 'Vidéo ajoutée avec succès');
           this.loadAllTabsData();
         },
-        error: (err) => (this.formErrorMessage = this.extractApiError(err))
+        error: (err) => {
+          this.uploading = false;
+          this.formErrorMessage = this.extractApiError(err);
+        }
       })
     );
   }
@@ -379,7 +408,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.alertsService.deleteAlert(alertId).subscribe({
         next: () => {
-          this.successMessage = 'Alerte supprimée avec succès';
+          this.showSuccess('Alerte supprimée avec succès');
           this.loadAllTabsData();
         },
         error: (err) => (this.pageErrorMessage = this.extractApiError(err))
@@ -399,8 +428,46 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     this.showMediaModal = false;
     this.showLocationMapModal = false;
     this.formErrorMessage = '';
+    this.uploading = false;
     this.selectedAlert = null;
     this.selectedProblem = null;
+  }
+
+  deleteMediaImage(imageUrl: string): void {
+    if (!this.editingAlert || this.deletingMediaUrl) return;
+    this.deletingMediaUrl = imageUrl;
+    this.subscriptions.add(
+      this.alertsService.removeImage(this.editingAlert.id, imageUrl).subscribe({
+        next: (updated) => {
+          if (this.editingAlert) this.editingAlert = { ...this.editingAlert, images: updated.images };
+          this.deletingMediaUrl = null;
+        },
+        error: () => { this.deletingMediaUrl = null; }
+      })
+    );
+  }
+
+  deleteMediaVideo(videoUrl: string): void {
+    if (!this.editingAlert || this.deletingMediaUrl) return;
+    this.deletingMediaUrl = videoUrl;
+    this.subscriptions.add(
+      this.alertsService.removeVideo(this.editingAlert.id, videoUrl).subscribe({
+        next: (updated) => {
+          if (this.editingAlert) this.editingAlert = { ...this.editingAlert, videos: updated.videos };
+          this.deletingMediaUrl = null;
+        },
+        error: () => { this.deletingMediaUrl = null; }
+      })
+    );
+  }
+
+  private showSuccess(message: string): void {
+    this.successMessage = message;
+    if (this.successMessageTimer) clearTimeout(this.successMessageTimer);
+    this.successMessageTimer = setTimeout(() => {
+      this.successMessage = '';
+      this.successMessageTimer = null;
+    }, 4000);
   }
 
   safeMapUrl(latitude: number, longitude: number): SafeResourceUrl {

@@ -46,6 +46,16 @@ export class AlertsService {
     return this.http.post<AlertResponse>(`${this.base}/${alertId}/videos`, payload);
   }
 
+  removeImage(alertId: number, imageUrl: string): Observable<AlertResponse> {
+    const params = new HttpParams().set('imageUrl', imageUrl);
+    return this.http.delete<AlertResponse>(`${this.base}/${alertId}/images`, { params });
+  }
+
+  removeVideo(alertId: number, videoUrl: string): Observable<AlertResponse> {
+    const params = new HttpParams().set('videoUrl', videoUrl);
+    return this.http.delete<AlertResponse>(`${this.base}/${alertId}/videos`, { params });
+  }
+
   private createPageParams(page: number, size: number): HttpParams {
     return new HttpParams().set('page', String(page)).set('size', String(size));
   }
