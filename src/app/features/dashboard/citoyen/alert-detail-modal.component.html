@@ -1,0 +1,26 @@
+<div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="close.emit()">
+  <div class="mx-auto mt-8 max-w-3xl rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-slate-900">Détails alerte #{{ alert.id }}</h3>
+      <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="close.emit()">X</button>
+    </div>
+    <div class="grid gap-3 md:grid-cols-2">
+      <p><strong>Title:</strong> {{ alert.title }}</p>
+      <p><strong>Status:</strong> {{ alert.status }}</p>
+      <p><strong>Priority:</strong> {{ alert.priority }}</p>
+      <p><strong>Category:</strong> {{ alert.category.name }}</p>
+      <p class="md:col-span-2"><strong>Description:</strong> {{ alert.description }}</p>
+      <p><strong>Nom prenom:</strong> {{ alert.user.nom }} {{ alert.user.prenom }}</p>
+      <p><strong>Address:</strong> {{ alert.address || '-' }}</p>
+      <p><strong>Latitude:</strong> {{ alert.latitude }}</p>
+      <p><strong>Longitude:</strong> {{ alert.longitude }}</p>
+    </div>
+    <div class="mt-4 overflow-hidden rounded-lg border border-slate-200">
+      <iframe
+        title="map"
+        class="h-64 w-full"
+        [src]="safeMapUrl(alert.latitude, alert.longitude)"
+      ></iframe>
+    </div>
+  </div>
+</div>

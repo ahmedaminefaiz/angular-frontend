@@ -13,7 +13,7 @@ interface NavItem {
   selector: 'app-dashboard-layout',
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NgClass],
-  templateUrl: './dashboard-layout.html'
+  templateUrl: './dashboard-layout.component.html'
 })
 export class DashboardLayoutComponent implements OnInit {
   role: Role | null = null;

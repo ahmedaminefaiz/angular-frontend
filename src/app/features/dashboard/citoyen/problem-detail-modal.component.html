@@ -1,0 +1,37 @@
+<div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="close.emit()">
+  <div class="mx-auto mt-6 max-h-[88vh] max-w-4xl overflow-auto rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-slate-900">Détails Problem #{{ problem.id }}</h3>
+      <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="close.emit()">X</button>
+    </div>
+    <div class="grid gap-2 md:grid-cols-2">
+      <p><strong>Title:</strong> {{ problem.title }}</p>
+      <p><strong>Status:</strong> {{ problem.status }}</p>
+      <p class="md:col-span-2"><strong>Description:</strong> {{ problem.description }}</p>
+      <p><strong>Created at:</strong> {{ problem.createdAt | date:'short' }}</p>
+      <p><strong>Updated at:</strong> {{ problem.updatedAt | date:'short' }}</p>
+    </div>
+    <div class="mt-4 rounded-lg border border-slate-200 p-3">
+      <p class="mb-2 text-sm font-semibold text-slate-700">Agent assigné</p>
+      <p class="text-sm text-slate-600">{{ getAssignedName() }}</p>
+    </div>
+    <div class="mt-4 rounded-lg border border-slate-200 p-3">
+      <p class="mb-2 text-sm font-semibold text-slate-700">Status history</p>
+      @if (!problem.statusHistory.length) {
+        <p class="text-sm text-slate-400">Aucun historique.</p>
+      } @else {
+        <ul class="space-y-2">
+          @for (entry of problem.statusHistory; track entry.id) {
+            <li class="rounded border border-slate-200 p-2 text-sm">
+              <p class="font-medium text-slate-800">{{ entry.previousStatus }} -> {{ entry.newStatus }}</p>
+              <p class="text-xs text-slate-500">{{ entry.changedBy }} - {{ entry.changedAt | date:'short' }}</p>
+              @if (entry.comment) {
+                <p class="mt-1 text-xs text-slate-600">{{ entry.comment }}</p>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+</div>

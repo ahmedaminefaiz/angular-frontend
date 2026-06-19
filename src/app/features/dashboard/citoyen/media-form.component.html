@@ -1,0 +1,23 @@
+<div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="cancelled.emit()">
+  <div class="mx-auto mt-8 max-w-xl rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-slate-900">Ajouter media</h3>
+      <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="cancelled.emit()">X</button>
+    </div>
+    <form [formGroup]="form" class="space-y-3" (ngSubmit)="onSubmit()">
+      <label class="text-sm">URL média
+        <input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" formControlName="mediaUrl" />
+      </label>
+      <label class="text-sm">Description
+        <textarea class="mt-1 min-h-20 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" formControlName="description"></textarea>
+      </label>
+      @if (serverError) {
+        <p class="text-xs text-rose-600">{{ serverError }}</p>
+      }
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" (click)="cancelled.emit()">Annuler</button>
+        <button type="submit" class="rounded-lg bg-sky-600 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-700">Ajouter</button>
+      </div>
+    </form>
+  </div>
+</div>
