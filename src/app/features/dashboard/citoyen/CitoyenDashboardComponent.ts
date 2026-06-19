@@ -1,5 +1,5 @@
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
+import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -22,6 +22,8 @@ import {
 } from '../../../models/alert.models';
 import { CloudinaryService, CloudinaryResourceType } from '../../../services/cloudinary.service';
 import { ProblemResponse } from '../../../models/problem.models';
+import { NotificationResponse } from '../../../models/notification.models';
+import { NotificationService } from '../../../services/notification.service';
 import { TokenService } from '../../../core/services/token.service';
 import { AlertsService } from '../../../services/alerts.service';
 import { ProblemsService } from '../../../services/problems.service';
@@ -37,7 +39,7 @@ type CitizenTab = 'alerts' | 'my-alerts' | 'approved-alerts' | 'notifications';
 @Component({
   selector: 'app-citoyen-dashboard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DatePipe, LocationMapPickerComponent],
+  imports: [CommonModule, ReactiveFormsModule, DatePipe, AsyncPipe, LocationMapPickerComponent],
   templateUrl: './citoyen-dashboard.component.html'
 })
 export class CitoyenDashboardComponent implements OnInit, OnDestroy {
@@ -51,7 +53,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   allAlertsLoading = false;
   myAlertsLoading = false;
   problemsLoading = false;
-  private readonly minSkeletonMs = 1000;
+  private readonly minSkeletonMs = 200;
   private readonly loadingTimers: ReturnType<typeof setTimeout>[] = [];
   pageErrorMessage = '';
   formErrorMessage = '';
@@ -80,6 +82,9 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   deletingMediaUrl: string | null = null;
   private successMessageTimer: ReturnType<typeof setTimeout> | null = null;
 
+  notifications: NotificationResponse[] = [];
+  notificationsLoading = false;
+
   private readonly subscriptions = new Subscription();
 
   readonly alertForm;
@@ -92,7 +97,9 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     private readonly cloudinaryService: CloudinaryService,
     private readonly route: ActivatedRoute,
     private readonly fb: FormBuilder,
-    private readonly sanitizer: DomSanitizer
+    private readonly sanitizer: DomSanitizer,
+    private readonly ngZone: NgZone,
+    readonly notificationService: NotificationService
   ) {
     this.alertForm = this.fb.group(
       {
@@ -113,6 +120,13 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     this.currentUserId = this.extractCurrentUserId();
     this.listenRouteTab();
     this.loadProblemTypes();
+    this.subscriptions.add(
+      this.notificationService.live$.subscribe(notif => {
+        if (this.currentTab === 'notifications') {
+          this.notifications = [notif, ...this.notifications];
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -441,6 +455,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
         next: (updated) => {
           if (this.editingAlert) this.editingAlert = { ...this.editingAlert, images: updated.images };
           this.deletingMediaUrl = null;
+          this.loadAllTabsData();
         },
         error: () => { this.deletingMediaUrl = null; }
       })
@@ -455,6 +470,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
         next: (updated) => {
           if (this.editingAlert) this.editingAlert = { ...this.editingAlert, videos: updated.videos };
           this.deletingMediaUrl = null;
+          this.loadAllTabsData();
         },
         error: () => { this.deletingMediaUrl = null; }
       })
@@ -465,9 +481,11 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     this.successMessage = message;
     if (this.successMessageTimer) clearTimeout(this.successMessageTimer);
     this.successMessageTimer = setTimeout(() => {
-      this.successMessage = '';
-      this.successMessageTimer = null;
-    }, 4000);
+      this.ngZone.run(() => {
+        this.successMessage = '';
+        this.successMessageTimer = null;
+      });
+    }, 3000);
   }
 
   safeMapUrl(latitude: number, longitude: number): SafeResourceUrl {
@@ -496,9 +514,97 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
       case 'approved-alerts':
         this.fetchProblems(0, 9, true);
         break;
+      case 'notifications':
+        this.fetchNotifications();
+        break;
       default:
         break;
     }
+  }
+
+  private fetchNotifications(): void {
+    // ── MOCK DATA (test visuel) ── supprimer ce bloc et décommenter le vrai appel dessous ──
+    this.notificationsLoading = true;
+    setTimeout(() => this.ngZone.run(() => {
+      this.notifications = [
+        {
+          id: 1,
+          message: 'Votre alerte "Fuite d\'eau sur Avenue Hassan II" a été prise en charge et son statut est passé à EN COURS.',
+          type: 'ALERT_STATUS_CHANGE',
+          referenceId: 42,
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString()
+        },
+        {
+          id: 2,
+          message: 'Votre alerte "Nid-de-poule Route Nationale 1" a été résolue avec succès. Merci pour votre signalement.',
+          type: 'ALERT_STATUS_CHANGE',
+          referenceId: 38,
+          isRead: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
+        },
+        {
+          id: 3,
+          message: 'Votre alerte "Éclairage public défaillant - Rue Al Massira" a été rejetée. Motif : hors zone d\'intervention.',
+          type: 'ALERT_STATUS_CHANGE',
+          referenceId: 31,
+          isRead: true,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
+        },
+        {
+          id: 4,
+          message: 'Votre alerte "Dépôt sauvage de déchets - Quartier Hay Riad" est en cours de traitement par nos équipes.',
+          type: 'ALERT_STATUS_CHANGE',
+          referenceId: 27,
+          isRead: true,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString()
+        }
+      ];
+      this.notificationsLoading = false;
+      // Simule 2 non-lues dans le badge sidebar
+      this.notificationService.setUnreadCount(2);
+    }), 400);
+    // ── FIN MOCK ─────────────────────────────────────────────────────────────────────────────
+    // ── VRAI APPEL API (décommenter quand le backend est prêt) ──────────────────────────────
+    // this.notificationsLoading = true;
+    // this.subscriptions.add(
+    //   this.notificationService.getNotifications(0, 50).subscribe({
+    //     next: (res) => {
+    //       this.notifications = res.content;
+    //       this.notificationsLoading = false;
+    //     },
+    //     error: () => { this.notificationsLoading = false; }
+    //   })
+    // );
+  }
+
+  markNotifAsRead(id: number): void {
+    this.subscriptions.add(
+      this.notificationService.markAsRead(id).subscribe({
+        next: (updated) => {
+          const idx = this.notifications.findIndex(n => n.id === id);
+          if (idx >= 0) this.notifications = [
+            ...this.notifications.slice(0, idx),
+            updated,
+            ...this.notifications.slice(idx + 1)
+          ];
+          this.notificationService.decrementUnread();
+        },
+        error: () => {}
+      })
+    );
+  }
+
+  markAllNotifsAsRead(): void {
+    this.subscriptions.add(
+      this.notificationService.markAllAsRead().subscribe({
+        next: () => {
+          this.notifications = this.notifications.map(n => ({ ...n, isRead: true }));
+          this.notificationService.resetUnread();
+        },
+        error: () => {}
+      })
+    );
   }
 
   private fetchAllAlerts(page: number, size: number, showSkeleton = true): void {
@@ -539,7 +645,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     const startedAt = Date.now();
     if (showSkeleton) this.problemsLoading = true;
     this.subscriptions.add(
-      this.problemsService.getProblems(page, size).subscribe({
+      this.problemsService.getProblemsRelatedToMyAlerts(page, size).subscribe({
         next: (response) => {
           this.problemsPage = response;
           this.finishLoading(showSkeleton, startedAt, () => (this.problemsLoading = false));
@@ -562,7 +668,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
       done();
       return;
     }
-    const timer = setTimeout(done, remaining);
+    const timer = setTimeout(() => this.ngZone.run(done), remaining);
     this.loadingTimers.push(timer);
   }
 

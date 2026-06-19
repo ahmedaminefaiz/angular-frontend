@@ -184,8 +184,111 @@
   }
 
   @if (currentTab === 'notifications') {
-    <div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-400 shadow-sm">
-      Notification: section réservée pour une prochaine itération.
+    <div class="space-y-4">
+
+      <!-- Header -->
+      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-white px-5 py-4 shadow-sm">
+        <div class="flex items-center gap-3">
+          <h2 class="text-base font-semibold text-slate-900">Mes notifications</h2>
+          @if (notificationService.unreadCount$ | async; as count) {
+            @if (count > 0) {
+              <span class="flex h-6 min-w-6 items-center justify-center rounded-full bg-teal-500 px-1.5 text-xs font-bold text-white">
+                {{ count > 99 ? '99+' : count }}
+              </span>
+            }
+          }
+        </div>
+        @if (notifications.length > 0) {
+          <button
+            class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition"
+            (click)="markAllNotifsAsRead()"
+          >
+            Tout marquer comme lu
+          </button>
+        }
+      </div>
+
+      <!-- Loading skeleton -->
+      @if (notificationsLoading) {
+        @for (_ of [1,2,3]; track $index) {
+          <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm animate-pulse">
+            <div class="mb-4 flex justify-end gap-2">
+              <div class="h-4 w-20 rounded bg-slate-100"></div>
+              <div class="h-5 w-28 rounded-full bg-slate-100"></div>
+            </div>
+            <div class="mx-auto h-4 w-3/4 rounded bg-slate-100"></div>
+            <div class="mx-auto mt-2 h-4 w-1/2 rounded bg-slate-100"></div>
+            <div class="mt-5 flex justify-between border-t border-slate-50 pt-3">
+              <div class="h-3 w-20 rounded bg-slate-100"></div>
+              <div class="h-3 w-24 rounded bg-slate-100"></div>
+            </div>
+          </div>
+        }
+      } @else if (notifications.length === 0) {
+        <div class="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+          <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+            <svg class="h-7 w-7 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+            </svg>
+          </div>
+          <p class="text-sm font-medium text-slate-500">Aucune notification pour le moment.</p>
+        </div>
+      } @else {
+        <div class="space-y-3">
+          @for (notif of notifications; track notif.id) {
+            <div class="relative rounded-2xl border bg-white shadow-sm transition-all duration-200"
+              [class.border-teal-200]="!notif.isRead"
+              [class.border-slate-100]="notif.isRead"
+              [class.shadow-teal-50]="!notif.isRead">
+
+              <!-- Unread stripe -->
+              @if (!notif.isRead) {
+                <div class="absolute left-0 top-4 bottom-4 w-1 rounded-full bg-teal-500"></div>
+              }
+
+              <div class="px-6 py-5">
+
+                <!-- Top: brand + type badge (right side) -->
+                <div class="mb-4 flex items-center justify-end gap-2">
+                  <span class="text-sm font-bold tracking-tight text-teal-700">UrbanAlert</span>
+                  <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    [class.bg-amber-100]="notif.type === 'ALERT_STATUS_CHANGE'"
+                    [class.text-amber-700]="notif.type === 'ALERT_STATUS_CHANGE'">
+                    {{ notif.type }}
+                  </span>
+                </div>
+
+                <!-- Message (center) -->
+                <p class="text-center text-sm leading-relaxed text-slate-700 md:text-base">
+                  {{ notif.message }}
+                </p>
+
+                <!-- Bottom: date + action -->
+                <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-3">
+                  <span class="text-xs text-slate-400">{{ notif.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  @if (!notif.isRead) {
+                    <button
+                      class="rounded-lg border border-teal-200 px-2.5 py-1 text-xs font-medium text-teal-600 hover:bg-teal-50 transition"
+                      (click)="markNotifAsRead(notif.id)"
+                    >
+                      Marquer comme lu
+                    </button>
+                  } @else {
+                    <span class="flex items-center gap-1 text-xs text-slate-400">
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                      </svg>
+                      Lu
+                    </span>
+                  }
+                </div>
+
+              </div>
+            </div>
+          }
+        </div>
+      }
+
     </div>
   }
 </div>

@@ -36,8 +36,13 @@
           routerLinkActive="bg-teal-500/20 text-teal-300 font-semibold"
           [routerLinkActiveOptions]="{ exact: true }"
           (click)="sidebarOpen = false"
-          class="flex items-center px-4 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-          {{ item.label }}
+          class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+          <span class="flex-1">{{ item.label }}</span>
+          @if (isNotifRoute(item) && unreadCount > 0) {
+            <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-500 px-1 text-xs font-bold text-white">
+              {{ unreadCount > 99 ? '99+' : unreadCount }}
+            </span>
+          }
         </a>
       }
     </nav>
