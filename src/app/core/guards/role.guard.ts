@@ -15,7 +15,7 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   }
 
   const dashboardRoutes: Record<Role, string> = {
-    CITOYEN: '/dashboard/citoyen',
+    CITOYEN: '/dashboard/citoyen/alerts',
     AGENT: '/dashboard/agent',
     SUPER_AGENT: '/dashboard/super-agent',
     ADMIN: '/dashboard/admin'

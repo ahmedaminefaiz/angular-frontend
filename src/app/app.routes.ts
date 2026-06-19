@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './pages/login/LoginComponent';
-import { RegisterComponent } from './pages/register/RegisterComponent';
-import { VerifyPhoneComponent } from './pages/verify-phone/VerifyPhoneComponent';
+import { LoginComponent } from './features/auth/login/login.component';
+import { RegisterComponent } from './features/auth/register/register.component';
+import { VerifyPhoneComponent } from './features/auth/verify-phone/verify-phone.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
@@ -13,16 +13,17 @@ export const routes: Routes = [
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/dashboard/layout/DashboardLayoutComponent').then(
+      import('./features/dashboard/layout/dashboard-layout.component').then(
         m => m.DashboardLayoutComponent
       ),
     children: [
+      { path: 'citoyen', redirectTo: 'citoyen/alerts', pathMatch: 'full' },
       {
-        path: 'citoyen',
+        path: 'citoyen/:tab',
         canActivate: [roleGuard],
         data: { roles: ['CITOYEN'] },
         loadComponent: () =>
-          import('./features/dashboard/citoyen/CitoyenDashboardComponent').then(
+          import('./features/dashboard/citoyen/citoyen-dashboard.component').then(
             m => m.CitoyenDashboardComponent
           )
       },
@@ -31,7 +32,7 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['AGENT'] },
         loadComponent: () =>
-          import('./features/dashboard/agent/AgentDashboardComponent').then(
+          import('./features/dashboard/agent/agent-dashboard.component').then(
             m => m.AgentDashboardComponent
           )
       },
@@ -43,14 +44,14 @@ export const routes: Routes = [
           {
             path: '',
             loadComponent: () =>
-              import('./features/dashboard/super-agent/SuperAgentDashboardComponent').then(
+              import('./features/dashboard/super-agent/super-agent-dashboard.component').then(
                 m => m.SuperAgentDashboardComponent
               )
           },
           {
             path: 'pending-agents',
             loadComponent: () =>
-              import('./features/dashboard/super-agent/pending-agents/PendingAgentsComponent').then(
+              import('./features/dashboard/super-agent/pending-agents/pending-agents.component').then(
                 m => m.PendingAgentsComponent
               )
           }
@@ -64,14 +65,14 @@ export const routes: Routes = [
           {
             path: '',
             loadComponent: () =>
-              import('./features/dashboard/admin/AdminDashboardComponent').then(
+              import('./features/dashboard/admin/admin-dashboard.component').then(
                 m => m.AdminDashboardComponent
               )
           },
           {
             path: 'pending-super-agents',
             loadComponent: () =>
-              import('./features/dashboard/admin/pending-super-agents/PendingSuperAgentsComponent').then(
+              import('./features/dashboard/admin/pending-super-agents/pending-super-agents.component').then(
                 m => m.PendingSuperAgentsComponent
               )
           }

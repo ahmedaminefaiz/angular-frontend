@@ -6,7 +6,7 @@ import { UserSummaryResponse } from '../models/user-management.models';
 
 @Injectable({ providedIn: 'root' })
 export class UserManagementService {
-  private base = `${environment.apiUrl}/v1/management`;
+  private base = `${environment.apiUrl}/v1/user-management`;
 
   constructor(private http: HttpClient) {}
 
