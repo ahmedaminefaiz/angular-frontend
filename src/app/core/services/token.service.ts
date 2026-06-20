@@ -67,6 +67,14 @@ export class TokenService {
     return null;
   }
 
+  getUserId(): number | null {
+    const payload = this.getTokenPayload();
+    if (!payload) return null;
+    const candidate = payload['userId'] ?? payload['id'];
+    const numeric = Number(candidate);
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+
   isLoggedIn(): boolean {
     const token = this.getToken();
     if (!token) return false;

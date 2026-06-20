@@ -1,0 +1,54 @@
+<div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="!uploading && cancelled.emit()">
+  <div class="mx-auto mt-8 max-w-xl rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-slate-900">Ajouter un média</h3>
+      <button class="rounded border border-slate-200 px-2 py-1 text-xs" [disabled]="uploading" (click)="cancelled.emit()">X</button>
+    </div>
+    <form [formGroup]="form" class="space-y-3" (ngSubmit)="onSubmit()">
+      <div>
+        <label class="text-sm font-medium text-slate-700">Fichier (image ou vidéo)</label>
+        <input
+          type="file"
+          accept="image/*,video/*"
+          class="mt-1 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-teal-700 hover:file:bg-teal-100"
+          (change)="onFileSelected($event)"
+        />
+        @if (selectedFile) {
+          <p class="mt-1 text-xs text-slate-500">
+            {{ selectedFile.name }} — {{ detectedType === 'video' ? 'Vidéo' : 'Image' }}
+          </p>
+        }
+      </div>
+      <label class="text-sm">
+        Description (optionnelle)
+        <textarea
+          class="mt-1 min-h-16 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          formControlName="description"
+        ></textarea>
+      </label>
+      @if (uploadError) {
+        <p class="text-xs text-rose-600">{{ uploadError }}</p>
+      }
+      @if (serverError) {
+        <p class="text-xs text-rose-600">{{ serverError }}</p>
+      }
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button
+          type="button"
+          class="rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-40"
+          [disabled]="uploading"
+          (click)="cancelled.emit()"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          class="rounded-lg bg-sky-600 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-50"
+          [disabled]="uploading"
+        >
+          {{ uploading ? 'Upload en cours…' : 'Ajouter' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

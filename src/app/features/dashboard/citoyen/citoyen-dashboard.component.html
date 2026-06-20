@@ -12,155 +12,47 @@
     </button>
   </div>
 
-  @if (successMessage) {
-    <div class="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-      <span>{{ successMessage }}</span>
-      <button type="button" class="ml-3 shrink-0 text-emerald-600 hover:text-emerald-900" (click)="successMessage = ''">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
+  @if (successMessage()) {
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+      {{ successMessage() }}
     </div>
   }
 
-  @if (pageErrorMessage && !hasOpenModal) {
+  @if (pageErrorMessage() && !hasOpenModal) {
     <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-      {{ pageErrorMessage }}
+      {{ pageErrorMessage() }}
     </div>
   }
 
-  @if (currentTab === 'alerts' || currentTab === 'my-alerts') {
-    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-slate-50 text-slate-600">
-            <tr class="border-b border-slate-200">
-              <th class="px-3 py-3 text-left font-medium">Title</th>
-              <th class="px-3 py-3 text-left font-medium">Nom prenom</th>
-              <th class="px-3 py-3 text-left font-medium">Priority</th>
-              <th class="px-3 py-3 text-left font-medium">Category</th>
-              <th class="px-3 py-3 text-left font-medium">Status</th>
-              <th class="px-3 py-3 text-right font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @if (isActiveTableLoading) {
-              @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
-                <tr class="border-b border-slate-100">
-                  <td colspan="6" class="px-3 py-3">
-                    <div class="h-5 w-full animate-pulse rounded bg-slate-100"></div>
-                  </td>
-                </tr>
-              }
-            } @else if (activePage.content.length === 0) {
-              <tr>
-                <td colspan="6" class="px-3 py-8 text-center text-slate-400">Aucune alerte trouvée.</td>
-              </tr>
-            } @else {
-              @for (alert of activePage.content; track alert.id) {
-                <tr class="border-b border-slate-100 transition"
-                  [class.bg-white]="getRowToneClass(alert) === 'normal'"
-                  [class.bg-slate-50]="getRowToneClass(alert) === 'muted'"
-                  [class.bg-amber-50]="getRowToneClass(alert) === 'warning'"
-                  [class.bg-emerald-50]="getRowToneClass(alert) === 'success'"
-                  [class.bg-rose-50]="getRowToneClass(alert) === 'danger'">
-                  <td class="px-3 py-3 font-medium text-slate-900">{{ alert.title }}</td>
-                  <td class="px-3 py-3 text-slate-600">{{ alert.user.nom }} {{ alert.user.prenom }}</td>
-                  <td class="px-3 py-3">
-                    <span class="rounded-full px-2 py-1 text-xs font-semibold"
-                      [class.bg-emerald-100]="alert.priority === 'LOW'"
-                      [class.text-emerald-700]="alert.priority === 'LOW'"
-                      [class.bg-amber-100]="alert.priority === 'MEDIUM'"
-                      [class.text-amber-700]="alert.priority === 'MEDIUM'"
-                      [class.bg-orange-100]="alert.priority === 'HIGH'"
-                      [class.text-orange-700]="alert.priority === 'HIGH'"
-                      [class.bg-rose-100]="alert.priority === 'CRITICAL'"
-                      [class.text-rose-700]="alert.priority === 'CRITICAL'">
-                      {{ alert.priority }}
-                    </span>
-                  </td>
-                  <td class="px-3 py-3 text-slate-600">{{ alert.category.name }}</td>
-                  <td class="px-3 py-3">
-                    <span class="rounded-full px-2 py-1 text-xs font-semibold"
-                      [class.bg-slate-100]="alert.status === 'NEW'"
-                      [class.text-slate-700]="alert.status === 'NEW'"
-                      [class.bg-amber-100]="alert.status === 'IN_PROGRESS'"
-                      [class.text-amber-700]="alert.status === 'IN_PROGRESS'"
-                      [class.bg-emerald-100]="alert.status === 'RESOLVED'"
-                      [class.text-emerald-700]="alert.status === 'RESOLVED'"
-                      [class.bg-rose-100]="alert.status === 'REJECTED'"
-                      [class.text-rose-700]="alert.status === 'REJECTED'">
-                      {{ alert.status }}
-                    </span>
-                  </td>
-                  <td class="px-3 py-3">
-                    <div class="flex items-center justify-end gap-2">
-                      <button class="rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
-                        title="Details"
-                        (click)="openAlertDetails(alert)">
-                        Details
-                      </button>
-                      @if (canManage(alert)) {
-                        <button class="rounded border border-sky-200 px-2 py-1 text-xs text-sky-700 hover:bg-sky-50"
-                          title="Add Media"
-                          (click)="openMediaForm(alert)">
-                          Add media
-                        </button>
-                        <button class="rounded border border-amber-200 px-2 py-1 text-xs text-amber-700 hover:bg-amber-50"
-                          title="Modifier"
-                          (click)="openEditForm(alert)">
-                          Modify
-                        </button>
-                        <button class="rounded border border-rose-200 px-2 py-1 text-xs text-rose-700 hover:bg-rose-50"
-                          title="Supprimer"
-                          (click)="deleteAlert(alert.id)">
-                          Delete
-                        </button>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <div class="flex items-center justify-between border-t border-slate-200 px-4 py-3">
-        <p class="text-xs text-slate-500">
-          Page {{ activePage.number + 1 }} / {{ activePage.totalPages || 1 }} - {{ activePage.totalElements }} éléments
-        </p>
-        <div class="flex items-center gap-2">
-          <button class="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 disabled:opacity-40"
-            [disabled]="activePage.number === 0"
-            (click)="changePage(activePage.number - 1)">
-            Précédent
-          </button>
-          <button class="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 disabled:opacity-40"
-            [disabled]="activePage.number + 1 >= activePage.totalPages"
-            (click)="changePage(activePage.number + 1)">
-            Suivant
-          </button>
-        </div>
-      </div>
-    </div>
+  @if (currentTab() === 'alerts' || currentTab() === 'my-alerts') {
+    <app-alert-table
+      [page]="activePage"
+      [loading]="isActiveTableLoading"
+      [currentUserId]="currentUserId"
+      [tab]="activeAlertTab"
+      (view)="openAlertDetails($event)"
+      (edit)="openEditForm($event)"
+      (remove)="deleteAlert($event)"
+      (addMedia)="openMediaForm($event)"
+      (pageChange)="changePage($event)"
+    />
   }
 
-  @if (currentTab === 'approved-alerts') {
+  @if (currentTab() === 'approved-alerts') {
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      @if (problemsLoading) {
+      @if (problemsLoading()) {
         @for (_ of [1,2,3]; track $index) {
           <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="mb-3 h-28 animate-pulse rounded-lg bg-emerald-100"></div>
             <div class="h-4 w-2/3 animate-pulse rounded bg-slate-100"></div>
           </div>
         }
-      } @else if (problemsPage.content.length === 0) {
+      } @else if (problemsPage().content.length === 0) {
         <div class="col-span-full rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-400">
           Aucun regroupement de signalements pour l'instant.
         </div>
       } @else {
-        @for (problem of problemsPage.content; track problem.id) {
+        @for (problem of problemsPage().content; track problem.id) {
           <div class="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="mb-3 rounded-lg bg-emerald-100 p-4 text-emerald-800">
               <p class="font-semibold">{{ problem.title }}</p>
@@ -183,559 +75,36 @@
     </div>
   }
 
-  @if (currentTab === 'notifications') {
-    <div class="space-y-4">
-
-      <!-- Header -->
-      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 bg-white px-5 py-4 shadow-sm">
-        <div class="flex items-center gap-3">
-          <h2 class="text-base font-semibold text-slate-900">Mes notifications</h2>
-          @if (notificationService.unreadCount$ | async; as count) {
-            @if (count > 0) {
-              <span class="flex h-6 min-w-6 items-center justify-center rounded-full bg-teal-500 px-1.5 text-xs font-bold text-white">
-                {{ count > 99 ? '99+' : count }}
-              </span>
-            }
-          }
-        </div>
-        @if (notifications.length > 0) {
-          <button
-            class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition"
-            (click)="markAllNotifsAsRead()"
-          >
-            Tout marquer comme lu
-          </button>
-        }
-      </div>
-
-      <!-- Loading skeleton -->
-      @if (notificationsLoading) {
-        @for (_ of [1,2,3]; track $index) {
-          <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm animate-pulse">
-            <div class="mb-4 flex justify-end gap-2">
-              <div class="h-4 w-20 rounded bg-slate-100"></div>
-              <div class="h-5 w-28 rounded-full bg-slate-100"></div>
-            </div>
-            <div class="mx-auto h-4 w-3/4 rounded bg-slate-100"></div>
-            <div class="mx-auto mt-2 h-4 w-1/2 rounded bg-slate-100"></div>
-            <div class="mt-5 flex justify-between border-t border-slate-50 pt-3">
-              <div class="h-3 w-20 rounded bg-slate-100"></div>
-              <div class="h-3 w-24 rounded bg-slate-100"></div>
-            </div>
-          </div>
-        }
-      } @else if (notifications.length === 0) {
-        <div class="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-          <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-            <svg class="h-7 w-7 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
-            </svg>
-          </div>
-          <p class="text-sm font-medium text-slate-500">Aucune notification pour le moment.</p>
-        </div>
-      } @else {
-        <div class="space-y-3">
-          @for (notif of notifications; track notif.id) {
-            <div class="relative rounded-2xl border bg-white shadow-sm transition-all duration-200"
-              [class.border-teal-200]="!notif.isRead"
-              [class.border-slate-100]="notif.isRead"
-              [class.shadow-teal-50]="!notif.isRead">
-
-              <!-- Unread stripe -->
-              @if (!notif.isRead) {
-                <div class="absolute left-0 top-4 bottom-4 w-1 rounded-full bg-teal-500"></div>
-              }
-
-              <div class="px-6 py-5">
-
-                <!-- Top: brand + type badge (right side) -->
-                <div class="mb-4 flex items-center justify-end gap-2">
-                  <span class="text-sm font-bold tracking-tight text-teal-700">UrbanAlert</span>
-                  <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                    [class.bg-amber-100]="notif.type === 'ALERT_STATUS_CHANGE'"
-                    [class.text-amber-700]="notif.type === 'ALERT_STATUS_CHANGE'">
-                    {{ notif.type }}
-                  </span>
-                </div>
-
-                <!-- Message (center) -->
-                <p class="text-center text-sm leading-relaxed text-slate-700 md:text-base">
-                  {{ notif.message }}
-                </p>
-
-                <!-- Bottom: date + action -->
-                <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-3">
-                  <span class="text-xs text-slate-400">{{ notif.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
-                  @if (!notif.isRead) {
-                    <button
-                      class="rounded-lg border border-teal-200 px-2.5 py-1 text-xs font-medium text-teal-600 hover:bg-teal-50 transition"
-                      (click)="markNotifAsRead(notif.id)"
-                    >
-                      Marquer comme lu
-                    </button>
-                  } @else {
-                    <span class="flex items-center gap-1 text-xs text-slate-400">
-                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-                      </svg>
-                      Lu
-                    </span>
-                  }
-                </div>
-
-              </div>
-            </div>
-          }
-        </div>
-      }
-
+  @if (currentTab() === 'notifications') {
+    <div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-400 shadow-sm">
+      Notification: section réservée pour une prochaine itération.
     </div>
   }
 </div>
 
 @if (showAlertModal && selectedAlert) {
-  <div class="fixed inset-0 z-40 bg-black/60 p-4 backdrop-blur-sm" (click)="closeAllModals()">
-    <div class="mx-auto mt-6 max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl" (click)="$event.stopPropagation()">
-
-      <!-- Header band -->
-      <div class="sticky top-0 z-10 flex items-start justify-between gap-3 rounded-t-2xl border-b border-slate-100 bg-white px-6 py-4">
-        <div class="flex-1 min-w-0">
-          <div class="flex flex-wrap items-center gap-2 mb-1">
-            <span class="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-400">#{{ selectedAlert.id }}</span>
-            <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-              [class.bg-emerald-100]="selectedAlert.priority === 'LOW'"  [class.text-emerald-700]="selectedAlert.priority === 'LOW'"
-              [class.bg-amber-100]="selectedAlert.priority === 'MEDIUM'" [class.text-amber-700]="selectedAlert.priority === 'MEDIUM'"
-              [class.bg-orange-100]="selectedAlert.priority === 'HIGH'"  [class.text-orange-700]="selectedAlert.priority === 'HIGH'"
-              [class.bg-rose-100]="selectedAlert.priority === 'CRITICAL'" [class.text-rose-700]="selectedAlert.priority === 'CRITICAL'">
-              {{ selectedAlert.priority }}
-            </span>
-            <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-              [class.bg-slate-100]="selectedAlert.status === 'NEW'"         [class.text-slate-600]="selectedAlert.status === 'NEW'"
-              [class.bg-amber-100]="selectedAlert.status === 'IN_PROGRESS'" [class.text-amber-700]="selectedAlert.status === 'IN_PROGRESS'"
-              [class.bg-emerald-100]="selectedAlert.status === 'RESOLVED'"  [class.text-emerald-700]="selectedAlert.status === 'RESOLVED'"
-              [class.bg-rose-100]="selectedAlert.status === 'REJECTED'"     [class.text-rose-700]="selectedAlert.status === 'REJECTED'">
-              {{ selectedAlert.status }}
-            </span>
-          </div>
-          <h3 class="truncate text-lg font-bold text-slate-900">{{ selectedAlert.title }}</h3>
-        </div>
-        <button class="shrink-0 rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-800" (click)="closeAllModals()">
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <div class="px-6 pb-6 pt-4 space-y-5">
-
-        <!-- Description -->
-        <div class="rounded-xl bg-slate-50 px-4 py-3">
-          <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Description</p>
-          <p class="text-sm leading-relaxed text-slate-700">{{ selectedAlert.description }}</p>
-        </div>
-
-        <!-- Info grid -->
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div class="rounded-xl border border-slate-100 p-4 space-y-3">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Informations</p>
-            <div>
-              <p class="text-xs text-slate-400">Catégorie</p>
-              <p class="mt-0.5 text-sm font-medium text-slate-800">{{ selectedAlert.category.name }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-400">Signalé par</p>
-              <p class="mt-0.5 text-sm font-medium text-slate-800">{{ selectedAlert.user.nom }} {{ selectedAlert.user.prenom }}</p>
-            </div>
-          </div>
-          <div class="rounded-xl border border-slate-100 p-4 space-y-3">
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Localisation</p>
-            <div>
-              <p class="text-xs text-slate-400">Adresse</p>
-              <p class="mt-0.5 text-sm font-medium text-slate-800">{{ selectedAlert.address || '—' }}</p>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <p class="text-xs text-slate-400">Latitude</p>
-                <p class="mt-0.5 font-mono text-xs text-slate-700">{{ selectedAlert.latitude }}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400">Longitude</p>
-                <p class="mt-0.5 font-mono text-xs text-slate-700">{{ selectedAlert.longitude }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Map -->
-        <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm">
-          <iframe title="map" class="h-56 w-full" [src]="safeMapUrl(selectedAlert.latitude, selectedAlert.longitude)"></iframe>
-        </div>
-
-        <!-- Images -->
-        @if (selectedAlert.images.length > 0) {
-          <div>
-            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Photos &bull; {{ selectedAlert.images.length }}
-            </p>
-            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              @for (img of selectedAlert.images; track img) {
-                <a [href]="img" target="_blank" rel="noopener">
-                  <img [src]="img" alt="photo alerte" class="h-28 w-full rounded-xl border border-slate-200 object-cover transition hover:opacity-90 hover:shadow-md" />
-                </a>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- Videos -->
-        @if (selectedAlert.videos.length > 0) {
-          <div>
-            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Vidéos &bull; {{ selectedAlert.videos.length }}
-            </p>
-            <div class="space-y-2">
-              @for (vid of selectedAlert.videos; track vid) {
-                <video [src]="vid" controls class="w-full max-h-52 rounded-xl border border-slate-200"></video>
-              }
-            </div>
-          </div>
-        }
-
-        @if (selectedAlert.images.length === 0 && selectedAlert.videos.length === 0) {
-          <p class="text-xs italic text-slate-400">Aucun média joint à cette alerte.</p>
-        }
-
-      </div>
-    </div>
-  </div>
+  <app-alert-detail-modal [alert]="selectedAlert" (close)="closeAllModals()" />
 }
 
 @if (showProblemModal && selectedProblem) {
-  <div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="closeAllModals()">
-    <div class="mx-auto mt-6 max-h-[88vh] max-w-4xl overflow-auto rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-slate-900">Détails Problem #{{ selectedProblem.id }}</h3>
-        <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="closeAllModals()">X</button>
-      </div>
-      <div class="grid gap-2 md:grid-cols-2">
-        <p><strong>Title:</strong> {{ selectedProblem.title }}</p>
-        <p><strong>Status:</strong> {{ selectedProblem.status }}</p>
-        <p class="md:col-span-2"><strong>Description:</strong> {{ selectedProblem.description }}</p>
-        <p><strong>Created at:</strong> {{ selectedProblem.createdAt | date:'short' }}</p>
-        <p><strong>Updated at:</strong> {{ selectedProblem.updatedAt | date:'short' }}</p>
-      </div>
-      <div class="mt-4 rounded-lg border border-slate-200 p-3">
-        <p class="mb-2 text-sm font-semibold text-slate-700">Agent assigné</p>
-        <p class="text-sm text-slate-600">{{ getProblemAssignedName(selectedProblem) }}</p>
-      </div>
-      <div class="mt-4 rounded-lg border border-slate-200 p-3">
-        <p class="mb-2 text-sm font-semibold text-slate-700">Status history</p>
-        @if (!selectedProblem.statusHistory.length) {
-          <p class="text-sm text-slate-400">Aucun historique.</p>
-        } @else {
-          <ul class="space-y-2">
-            @for (statusHistory of selectedProblem.statusHistory; track statusHistory.id) {
-              <li class="rounded border border-slate-200 p-2 text-sm">
-                <p class="font-medium text-slate-800">{{ statusHistory.previousStatus }} -> {{ statusHistory.newStatus }}</p>
-                <p class="text-xs text-slate-500">{{ statusHistory.changedBy }} - {{ statusHistory.changedAt | date:'short' }}</p>
-                @if (statusHistory.comment) {
-                  <p class="mt-1 text-xs text-slate-600">{{ statusHistory.comment }}</p>
-                }
-              </li>
-            }
-          </ul>
-        }
-      </div>
-    </div>
-  </div>
+  <app-problem-detail-modal [problem]="selectedProblem" (close)="closeAllModals()" />
 }
 
 @if (showAlertFormModal) {
-  <div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="closeAllModals()">
-    <div class="mx-auto mt-6 max-h-[90vh] max-w-2xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
-      <div class="mb-5 flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wide text-teal-600">Signalement citoyen</p>
-          <h3 class="mt-1 text-xl font-bold text-slate-900">
-            {{ editingAlert ? 'Modifier l\'incident' : 'Signaler un incident urbain' }}
-          </h3>
-          <p class="mt-1 text-sm text-slate-500">Décrivez le problème et indiquez sa localisation au Maroc.</p>
-        </div>
-        <button
-          type="button"
-          class="shrink-0 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
-          (click)="closeAllModals()"
-        >
-          X
-        </button>
-      </div>
-      <form [formGroup]="alertForm" class="grid gap-3 md:grid-cols-2" (ngSubmit)="submitAlertForm()">
-        <div class="md:col-span-2">
-          <label class="text-sm font-medium text-slate-700">Titre</label>
-          <input
-            class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
-            [class.border-slate-300]="!fieldInvalid('title')"
-            [class.border-rose-400]="fieldInvalid('title')"
-            formControlName="title"
-          />
-          @if (fieldInvalid('title')) {
-            <p class="mt-1 text-xs text-rose-600">{{ fieldError('title') }}</p>
-          }
-        </div>
-        <div class="md:col-span-2">
-          <label class="text-sm font-medium text-slate-700">Description</label>
-          <textarea
-            class="mt-1 min-h-24 w-full rounded-lg border px-3 py-2 text-sm"
-            [class.border-slate-300]="!fieldInvalid('description')"
-            [class.border-rose-400]="fieldInvalid('description')"
-            formControlName="description"
-          ></textarea>
-          @if (fieldInvalid('description')) {
-            <p class="mt-1 text-xs text-rose-600">{{ fieldError('description') }}</p>
-          }
-        </div>
-
-        <section class="md:col-span-2 rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-4">
-          <p class="text-sm font-semibold text-slate-800">Localisation</p>
-          <p class="mt-0.5 text-xs text-slate-500">Obligatoire — sélection sur la carte ou position GPS actuelle (Maroc).</p>
-          <div class="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              class="rounded-lg border border-teal-200 bg-white px-3 py-2 text-sm font-medium text-teal-800 shadow-sm hover:bg-teal-50"
-              (click)="openLocationMap()"
-            >
-              Ouvrir la carte
-            </button>
-            <button
-              type="button"
-              class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-              [disabled]="locating"
-              (click)="useCurrentLocation()"
-            >
-              {{ locating ? 'Localisation…' : 'Ma position actuelle' }}
-            </button>
-          </div>
-          <div class="mt-3 grid gap-3 md:grid-cols-2">
-            <div>
-              <label class="text-sm text-slate-600">Latitude</label>
-              <input
-                class="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700"
-                readonly
-                [value]="formatCoordinate(alertForm.get('latitude')?.value)"
-              />
-            </div>
-            <div>
-              <label class="text-sm text-slate-600">Longitude</label>
-              <input
-                class="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700"
-                readonly
-                [value]="formatCoordinate(alertForm.get('longitude')?.value)"
-              />
-            </div>
-          </div>
-          @if (fieldInvalid('latitude') || fieldInvalid('longitude') || locationFormError) {
-            <p class="mt-2 text-xs text-rose-600">{{ locationFormError || fieldError('latitude') || fieldError('longitude') }}</p>
-          }
-          <div class="mt-3">
-            <label class="text-sm font-medium text-slate-700">Adresse</label>
-            <input
-              class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              formControlName="address"
-              placeholder="Remplie automatiquement depuis la carte (modifiable)"
-            />
-          </div>
-        </section>
-
-        <div>
-          <label class="text-sm font-medium text-slate-700">Catégorie</label>
-          <select
-            class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
-            [class.border-slate-300]="!fieldInvalid('categoryId')"
-            [class.border-rose-400]="fieldInvalid('categoryId')"
-            formControlName="categoryId"
-          >
-            <option [ngValue]="null" disabled>Sélectionnez une catégorie</option>
-            @for (cat of categoryList; track cat.id) {
-              <option [ngValue]="cat.id">{{ cat.name }}</option>
-            }
-          </select>
-          @if (fieldInvalid('categoryId')) {
-            <p class="mt-1 text-xs text-rose-600">{{ fieldError('categoryId') }}</p>
-          }
-          @if (!categoryList.length) {
-            <p class="mt-1 text-xs text-amber-600">Aucune catégorie chargée. Vérifiez l'API /v1/problem-types.</p>
-          }
-        </div>
-        <div>
-          <label class="text-sm font-medium text-slate-700">Priorité</label>
-          <select class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" formControlName="priority">
-            <option value="LOW">Faible</option>
-            <option value="MEDIUM">Moyenne</option>
-            <option value="HIGH">Élevée</option>
-            <option value="CRITICAL">Critique</option>
-          </select>
-        </div>
-        <!-- Media management in edit mode -->
-        @if (editingAlert && (editingAlert.images.length > 0 || editingAlert.videos.length > 0)) {
-          <div class="md:col-span-2 rounded-xl border border-slate-100 bg-slate-50 p-4">
-            <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Médias actuels</p>
-
-            @if (editingAlert.images.length > 0) {
-              <div class="mb-3">
-                <p class="mb-2 text-xs font-medium text-slate-600">Photos ({{ editingAlert.images.length }})</p>
-                <div class="flex flex-wrap gap-2">
-                  @for (img of editingAlert.images; track img) {
-                    <div class="group relative h-20 w-20 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-                      <img [src]="img" class="h-full w-full object-cover" alt="photo" />
-                      <button
-                        type="button"
-                        class="absolute right-1 top-1 flex items-center justify-center rounded-full bg-rose-600 p-0.5 text-white shadow opacity-0 transition-opacity group-hover:opacity-100 disabled:cursor-not-allowed"
-                        [disabled]="deletingMediaUrl === img"
-                        (click)="deleteMediaImage(img)"
-                        title="Supprimer cette photo"
-                      >
-                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                      </button>
-                      @if (deletingMediaUrl === img) {
-                        <div class="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
-                          <div class="h-4 w-4 animate-spin rounded-full border-2 border-rose-400 border-t-transparent"></div>
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-
-            @if (editingAlert.videos.length > 0) {
-              <div>
-                <p class="mb-2 text-xs font-medium text-slate-600">Vidéos ({{ editingAlert.videos.length }})</p>
-                <div class="space-y-1.5">
-                  @for (vid of editingAlert.videos; track vid) {
-                    <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
-                      <span class="max-w-[220px] truncate font-mono text-xs text-slate-500">{{ vid.split('/').pop() }}</span>
-                      <button
-                        type="button"
-                        class="ml-2 shrink-0 rounded border border-rose-200 px-2 py-0.5 text-xs text-rose-600 hover:bg-rose-50 disabled:opacity-50"
-                        [disabled]="deletingMediaUrl === vid"
-                        (click)="deleteMediaVideo(vid)"
-                      >
-                        {{ deletingMediaUrl === vid ? '…' : 'Supprimer' }}
-                      </button>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        }
-
-        <div class="md:col-span-2 flex flex-col items-end gap-2 pt-2">
-          @if (formErrorMessage) {
-            <p class="w-full text-right text-xs text-rose-600">{{ formErrorMessage }}</p>
-          }
-          <div class="flex items-center gap-2">
-            <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" (click)="closeAllModals()">Annuler</button>
-            <button type="submit" class="rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700">
-              {{ editingAlert ? 'Mettre à jour' : 'Signaler' }}
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-}
-
-@if (showLocationMapModal) {
-  <app-location-map-picker
-    [initialLat]="mapInitialLat"
-    [initialLng]="mapInitialLng"
-    (confirmed)="onLocationPicked($event)"
-    (cancel)="showLocationMapModal = false"
+  <app-alert-form
+    [editing]="editingAlert"
+    [categories]="categoryList()"
+    [serverError]="alertFormError()"
+    (submitted)="onAlertFormSubmitted($event)"
+    (cancelled)="closeAllModals()"
   />
 }
 
 @if (showMediaModal && selectedAlert) {
-  <div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="closeAllModals()">
-    <div class="mx-auto mt-8 max-w-md rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
-
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-slate-900">Ajouter un média</h3>
-        <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="closeAllModals()">X</button>
-      </div>
-
-      <!-- Tabs Photo / Vidéo -->
-      <div class="mb-4 flex overflow-hidden rounded-lg border border-slate-200">
-        <button
-          type="button"
-          class="flex-1 py-2 text-sm font-medium transition"
-          [class.bg-teal-600]="mediaType === 'image'"
-          [class.text-white]="mediaType === 'image'"
-          [class.text-slate-600]="mediaType !== 'image'"
-          (click)="mediaType = 'image'; selectedFile = null"
-        >
-          Photo
-        </button>
-        <button
-          type="button"
-          class="flex-1 py-2 text-sm font-medium transition"
-          [class.bg-teal-600]="mediaType === 'video'"
-          [class.text-white]="mediaType === 'video'"
-          [class.text-slate-600]="mediaType !== 'video'"
-          (click)="mediaType = 'video'; selectedFile = null"
-        >
-          Vidéo
-        </button>
-      </div>
-
-      <!-- Zone de sélection du fichier -->
-      <input
-        #fileInput
-        type="file"
-        class="hidden"
-        [accept]="mediaType === 'image' ? 'image/*' : 'video/*'"
-        (change)="onFileChange($event)"
-      />
-      <div
-        class="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 px-4 py-8 text-center cursor-pointer hover:border-teal-300 hover:bg-teal-50/40 transition"
-        (click)="fileInput.click()"
-      >
-        @if (!selectedFile) {
-          <p class="text-sm text-slate-500">
-            Cliquez pour choisir {{ mediaType === 'image' ? 'une photo' : 'une vidéo' }}
-          </p>
-          <p class="mt-1 text-xs text-slate-400">
-            {{ mediaType === 'image' ? 'JPG, PNG, WEBP…' : 'MP4, MOV, AVI…' }}
-          </p>
-        } @else {
-          <p class="text-sm font-medium text-slate-800 max-w-full truncate">{{ selectedFile.name }}</p>
-          <p class="mt-0.5 text-xs text-slate-500">{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</p>
-          <button
-            type="button"
-            class="mt-2 text-xs text-rose-500 hover:text-rose-700"
-            (click)="$event.stopPropagation(); selectedFile = null; fileInput.value = ''"
-          >
-            Changer de fichier
-          </button>
-        }
-      </div>
-
-      @if (formErrorMessage) {
-        <p class="mt-2 text-xs text-rose-600">{{ formErrorMessage }}</p>
-      }
-
-      <div class="mt-4 flex items-center justify-end gap-2">
-        <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" (click)="closeAllModals()">
-          Annuler
-        </button>
-        <button
-          type="button"
-          class="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
-          [disabled]="!selectedFile || uploading"
-          (click)="submitMediaForm()"
-        >
-          {{ uploading ? 'Upload en cours…' : (mediaType === 'image' ? 'Ajouter la photo' : 'Ajouter la vidéo') }}
-        </button>
-      </div>
-
-    </div>
-  </div>
+  <app-media-form
+    [alertId]="selectedAlert.id"
+    [serverError]="mediaFormError()"
+    (submitted)="onMediaFormSubmitted($event)"
+    (cancelled)="closeAllModals()"
+  />
 }

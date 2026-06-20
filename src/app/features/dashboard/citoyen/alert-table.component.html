@@ -1,0 +1,114 @@
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead class="bg-slate-50 text-slate-600">
+        <tr class="border-b border-slate-200">
+          <th class="px-3 py-3 text-left font-medium">Title</th>
+          <th class="px-3 py-3 text-left font-medium">Nom prenom</th>
+          <th class="px-3 py-3 text-left font-medium">Priority</th>
+          <th class="px-3 py-3 text-left font-medium">Category</th>
+          <th class="px-3 py-3 text-left font-medium">Status</th>
+          <th class="px-3 py-3 text-right font-medium">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading) {
+          @for (_ of skeletonRows; track $index) {
+            <tr class="border-b border-slate-100">
+              <td colspan="6" class="px-3 py-3">
+                <div class="h-5 w-full animate-pulse rounded bg-slate-100"></div>
+              </td>
+            </tr>
+          }
+        } @else if (page.content.length === 0) {
+          <tr>
+            <td colspan="6" class="px-3 py-8 text-center text-slate-400">Aucune alerte trouvée.</td>
+          </tr>
+        } @else {
+          @for (alert of page.content; track alert.id) {
+            <tr class="border-b border-slate-100 transition"
+              [class.bg-white]="getRowToneClass(alert) === 'normal'"
+              [class.bg-slate-50]="getRowToneClass(alert) === 'muted'"
+              [class.bg-amber-50]="getRowToneClass(alert) === 'warning'"
+              [class.bg-emerald-50]="getRowToneClass(alert) === 'success'"
+              [class.bg-rose-50]="getRowToneClass(alert) === 'danger'">
+              <td class="px-3 py-3 font-medium text-slate-900">{{ alert.title }}</td>
+              <td class="px-3 py-3 text-slate-600">{{ alert.user.nom }} {{ alert.user.prenom }}</td>
+              <td class="px-3 py-3">
+                <span class="rounded-full px-2 py-1 text-xs font-semibold"
+                  [class.bg-emerald-100]="alert.priority === 'LOW'"
+                  [class.text-emerald-700]="alert.priority === 'LOW'"
+                  [class.bg-amber-100]="alert.priority === 'MEDIUM'"
+                  [class.text-amber-700]="alert.priority === 'MEDIUM'"
+                  [class.bg-orange-100]="alert.priority === 'HIGH'"
+                  [class.text-orange-700]="alert.priority === 'HIGH'"
+                  [class.bg-rose-100]="alert.priority === 'CRITICAL'"
+                  [class.text-rose-700]="alert.priority === 'CRITICAL'">
+                  {{ alert.priority }}
+                </span>
+              </td>
+              <td class="px-3 py-3 text-slate-600">{{ alert.category.name }}</td>
+              <td class="px-3 py-3">
+                <span class="rounded-full px-2 py-1 text-xs font-semibold"
+                  [class.bg-slate-100]="alert.status === 'NEW'"
+                  [class.text-slate-700]="alert.status === 'NEW'"
+                  [class.bg-amber-100]="alert.status === 'IN_PROGRESS'"
+                  [class.text-amber-700]="alert.status === 'IN_PROGRESS'"
+                  [class.bg-emerald-100]="alert.status === 'RESOLVED'"
+                  [class.text-emerald-700]="alert.status === 'RESOLVED'"
+                  [class.bg-rose-100]="alert.status === 'REJECTED'"
+                  [class.text-rose-700]="alert.status === 'REJECTED'">
+                  {{ alert.status }}
+                </span>
+              </td>
+              <td class="px-3 py-3">
+                <div class="flex items-center justify-end gap-2">
+                  <button class="rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
+                    title="Details"
+                    (click)="view.emit(alert)">
+                    Details
+                  </button>
+                  @if (canManage(alert)) {
+                    <button class="rounded border border-sky-200 px-2 py-1 text-xs text-sky-700 hover:bg-sky-50"
+                      title="Add Media"
+                      (click)="addMedia.emit(alert)">
+                      Add media
+                    </button>
+                    <button class="rounded border border-amber-200 px-2 py-1 text-xs text-amber-700 hover:bg-amber-50"
+                      title="Modifier"
+                      (click)="edit.emit(alert)">
+                      Modify
+                    </button>
+                    <button class="rounded border border-rose-200 px-2 py-1 text-xs text-rose-700 hover:bg-rose-50"
+                      title="Supprimer"
+                      (click)="remove.emit(alert.id)">
+                      Delete
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between border-t border-slate-200 px-4 py-3">
+    <p class="text-xs text-slate-500">
+      Page {{ page.number + 1 }} / {{ page.totalPages || 1 }} - {{ page.totalElements }} éléments
+    </p>
+    <div class="flex items-center gap-2">
+      <button class="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 disabled:opacity-40"
+        [disabled]="page.number === 0"
+        (click)="pageChange.emit(page.number - 1)">
+        Précédent
+      </button>
+      <button class="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 disabled:opacity-40"
+        [disabled]="page.number + 1 >= page.totalPages"
+        (click)="pageChange.emit(page.number + 1)">
+        Suivant
+      </button>
+    </div>
+  </div>
+</div>

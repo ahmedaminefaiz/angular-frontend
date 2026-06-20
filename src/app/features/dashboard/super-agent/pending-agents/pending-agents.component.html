@@ -16,19 +16,19 @@
   </div>
 
   <!-- Success toast -->
-  @if (successMessage) {
+  @if (successMessage()) {
     <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-5 py-4 text-sm flex items-center gap-3">
       <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
-      {{ successMessage }}
+      {{ successMessage() }}
     </div>
   }
 
   <!-- Page error -->
-  @if (pageError) {
+  @if (pageError()) {
     <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4 text-sm flex items-center justify-between gap-3">
-      <span>{{ pageError }}</span>
+      <span>{{ pageError() }}</span>
       <button (click)="loadAgents()" class="text-red-600 font-medium underline hover:no-underline flex-shrink-0">
         Réessayer
       </button>
@@ -36,7 +36,7 @@
   }
 
   <!-- Skeleton loading -->
-  @if (pageLoading) {
+  @if (pageLoading()) {
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       @for (i of [1, 2, 3]; track i) {
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 animate-pulse">
@@ -61,7 +61,7 @@
   }
 
   <!-- Empty state -->
-  @if (!pageLoading && !pageError && cards.length === 0) {
+  @if (!pageLoading() && !pageError() && cards().length === 0) {
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 flex flex-col items-center text-center">
       <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
         <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,9 +75,9 @@
   }
 
   <!-- Agent cards -->
-  @if (!pageLoading && cards.length > 0) {
+  @if (!pageLoading() && cards().length > 0) {
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      @for (card of cards; track card.user.id) {
+      @for (card of cards(); track card.user.id) {
         <div
           class="bg-white rounded-xl border shadow-sm p-5 transition-all duration-300"
           [class.border-green-200]="card.done"

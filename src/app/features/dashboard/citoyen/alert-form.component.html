@@ -1,0 +1,147 @@
+<div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="cancelled.emit()">
+  <div class="mx-auto mt-6 max-h-[90vh] max-w-2xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+    <div class="mb-5 flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wide text-teal-600">Signalement citoyen</p>
+        <h3 class="mt-1 text-xl font-bold text-slate-900">
+          {{ editing ? 'Modifier l\'incident' : 'Signaler un incident urbain' }}
+        </h3>
+        <p class="mt-1 text-sm text-slate-500">Décrivez le problème et indiquez sa localisation au Maroc.</p>
+      </div>
+      <button
+        type="button"
+        class="shrink-0 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+        (click)="cancelled.emit()"
+      >
+        X
+      </button>
+    </div>
+    <form [formGroup]="form" class="grid gap-3 md:grid-cols-2" (ngSubmit)="onSubmit()">
+      <div class="md:col-span-2">
+        <label class="text-sm font-medium text-slate-700">Titre</label>
+        <input
+          class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+          [class.border-slate-300]="!fieldInvalid('title')"
+          [class.border-rose-400]="fieldInvalid('title')"
+          formControlName="title"
+        />
+        @if (fieldInvalid('title')) {
+          <p class="mt-1 text-xs text-rose-600">{{ fieldError('title') }}</p>
+        }
+      </div>
+      <div class="md:col-span-2">
+        <label class="text-sm font-medium text-slate-700">Description</label>
+        <textarea
+          class="mt-1 min-h-24 w-full rounded-lg border px-3 py-2 text-sm"
+          [class.border-slate-300]="!fieldInvalid('description')"
+          [class.border-rose-400]="fieldInvalid('description')"
+          formControlName="description"
+        ></textarea>
+        @if (fieldInvalid('description')) {
+          <p class="mt-1 text-xs text-rose-600">{{ fieldError('description') }}</p>
+        }
+      </div>
+
+      <section class="md:col-span-2 rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-4">
+        <p class="text-sm font-semibold text-slate-800">Localisation</p>
+        <p class="mt-0.5 text-xs text-slate-500">Obligatoire — sélection sur la carte ou position GPS actuelle (Maroc).</p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="rounded-lg border border-teal-200 bg-white px-3 py-2 text-sm font-medium text-teal-800 shadow-sm hover:bg-teal-50"
+            (click)="openLocationMap()"
+          >
+            Ouvrir la carte
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            [disabled]="locating"
+            (click)="useCurrentLocation()"
+          >
+            {{ locating ? 'Localisation…' : 'Ma position actuelle' }}
+          </button>
+        </div>
+        <div class="mt-3 grid gap-3 md:grid-cols-2">
+          <div>
+            <label class="text-sm text-slate-600">Latitude</label>
+            <input
+              class="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700"
+              readonly
+              [value]="formatCoordinate(form.get('latitude')?.value)"
+            />
+          </div>
+          <div>
+            <label class="text-sm text-slate-600">Longitude</label>
+            <input
+              class="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700"
+              readonly
+              [value]="formatCoordinate(form.get('longitude')?.value)"
+            />
+          </div>
+        </div>
+        @if (fieldInvalid('latitude') || fieldInvalid('longitude') || locationFormError) {
+          <p class="mt-2 text-xs text-rose-600">{{ locationFormError || fieldError('latitude') || fieldError('longitude') }}</p>
+        }
+        <div class="mt-3">
+          <label class="text-sm font-medium text-slate-700">Adresse</label>
+          <input
+            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            formControlName="address"
+            placeholder="Remplie automatiquement depuis la carte (modifiable)"
+          />
+        </div>
+      </section>
+
+      <div>
+        <label class="text-sm font-medium text-slate-700">Catégorie</label>
+        <select
+          class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+          [class.border-slate-300]="!fieldInvalid('categoryId')"
+          [class.border-rose-400]="fieldInvalid('categoryId')"
+          formControlName="categoryId"
+        >
+          <option [ngValue]="null" disabled>Sélectionnez une catégorie</option>
+          @for (cat of categories; track cat.id) {
+            <option [ngValue]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+        @if (fieldInvalid('categoryId')) {
+          <p class="mt-1 text-xs text-rose-600">{{ fieldError('categoryId') }}</p>
+        }
+        @if (!categories.length) {
+          <p class="mt-1 text-xs text-amber-600">Aucune catégorie chargée. Vérifiez l'API /v1/problem-types.</p>
+        }
+      </div>
+      <div>
+        <label class="text-sm font-medium text-slate-700">Priorité</label>
+        <select class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" formControlName="priority">
+          <option value="LOW">Faible</option>
+          <option value="MEDIUM">Moyenne</option>
+          <option value="HIGH">Élevée</option>
+          <option value="CRITICAL">Critique</option>
+        </select>
+      </div>
+      <div class="md:col-span-2 flex flex-col items-end gap-2 pt-2">
+        @if (serverError) {
+          <p class="w-full text-right text-xs text-rose-600">{{ serverError }}</p>
+        }
+        <div class="flex items-center gap-2">
+          <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" (click)="cancelled.emit()">Annuler</button>
+          <button type="submit" class="rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700">
+            {{ editing ? 'Mettre à jour' : 'Signaler' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+@if (showLocationMap) {
+  <app-location-map-picker
+    [initialLat]="mapInitialLat"
+    [initialLng]="mapInitialLng"
+    (confirmed)="onLocationPicked($event)"
+    (cancel)="showLocationMap = false"
+  />
+}

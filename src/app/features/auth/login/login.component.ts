@@ -1,17 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { TokenService } from '../../core/services/token.service';
-import { Role } from '../../models/auth.models';
+import { AuthService } from '../../../core/services/auth.service';
+import { TokenService } from '../../../core/services/token.service';
+import { Role } from '../../../models/auth.models';
+import { MoroccanPhoneInputComponent } from '../../../shared/phone-input/moroccan-phone-input.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './login.html'
+  imports: [ReactiveFormsModule, RouterLink, MoroccanPhoneInputComponent],
+  templateUrl: './login.component.html'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   form = new FormGroup({
     phone: new FormControl('', [
       Validators.required,
@@ -20,8 +21,9 @@ export class LoginComponent {
     password: new FormControl('', [Validators.required])
   });
 
-  error = '';
-  loading = false;
+  readonly loading = signal(false);
+  readonly error = signal('');
+  readonly verifiedMessage = signal('');
 
   constructor(
     private authService: AuthService,
@@ -29,17 +31,24 @@ export class LoginComponent {
     private router: Router
   ) {}
 
+  ngOnInit(): void {
+    const state = this.router.getCurrentNavigation()?.extras.state;
+    if (state?.['verifiedMessage']) {
+      this.verifiedMessage.set(state['verifiedMessage']);
+    }
+  }
+
   onSubmit() {
     if (this.form.invalid) return;
-    this.loading = true;
-    this.error = '';
+    this.loading.set(true);
+    this.error.set('');
 
     this.authService.login(this.form.value as any).subscribe({
       next: (response) => {
         const token = typeof response === 'string' ? response : response?.token;
         if (!token) {
-          this.error = 'Réponse de connexion invalide (token manquant).';
-          this.loading = false;
+          this.error.set('Réponse de connexion invalide (token manquant).');
+          this.loading.set(false);
           return;
         }
 
@@ -50,25 +59,25 @@ export class LoginComponent {
             : this.tokenService.getRole()) ?? null;
 
         if (!role) {
-          this.error = 'Impossible de déterminer le rôle utilisateur.';
-          this.loading = false;
+          this.error.set('Impossible de déterminer le rôle utilisateur.');
+          this.loading.set(false);
           return;
         }
 
+        this.loading.set(false);
         this.router.navigate([this.dashboardRoute(role)]);
       },
       error: (err) => {
         if (err.status === 0) {
-          this.error = 'Impossible de joindre le serveur (CORS ou backend arrêté).';
+          this.error.set('Impossible de joindre le serveur (CORS ou backend arrêté).');
         } else if (err.status === 401) {
-          this.error = 'Numéro de téléphone ou mot de passe incorrect';
+          this.error.set('Numéro de téléphone ou mot de passe incorrect.');
         } else {
-          this.error =
-            typeof err.error === 'string'
-              ? err.error
-              : 'Compte non actif ou erreur de connexion';
+          this.error.set(
+            typeof err.error === 'string' ? err.error : 'Compte non actif ou erreur de connexion.'
+          );
         }
-        this.loading = false;
+        this.loading.set(false);
       }
     });
   }
