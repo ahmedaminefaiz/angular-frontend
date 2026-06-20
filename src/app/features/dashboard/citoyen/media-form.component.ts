@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CloudinaryService } from '../../../services/cloudinary.service';
 
 export type MediaType = 'image' | 'video';
@@ -21,6 +22,7 @@ export class MediaFormComponent {
   @Output() readonly cancelled = new EventEmitter<void>();
 
   private readonly cloudinary = inject(CloudinaryService);
+  private readonly destroyRef = inject(DestroyRef);
 
   selectedType: MediaType = 'image';
   selectedFile: File | null = null;
@@ -53,7 +55,9 @@ export class MediaFormComponent {
     const folder = `alert/${this.alertId}/${this.selectedType}`;
     this.uploading = true;
     this.uploadError = '';
-    this.cloudinary.upload(this.selectedFile, this.selectedType, folder).subscribe({
+    this.cloudinary.upload(this.selectedFile, this.selectedType, folder)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (url) => {
         this.uploading = false;
         this.submitted.emit({ mediaUrl: url, mediaType: this.selectedType });

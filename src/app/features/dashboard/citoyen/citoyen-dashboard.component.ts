@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import {
@@ -8,7 +8,6 @@ import {
   ApiPage,
   CreateAlertRequest
 } from '../../../models/alert.models';
-import { MediaSubmitPayload } from './media-form.component';
 import { ProblemResponse } from '../../../models/problem.models';
 import { TokenService } from '../../../core/services/token.service';
 import { AlertsService } from '../../../services/alerts.service';
@@ -17,7 +16,7 @@ import { ProblemTypesService } from '../../../services/problem-types.service';
 import { AlertTableComponent } from './alert-table.component';
 import { AlertDetailModalComponent } from './alert-detail-modal.component';
 import { AlertFormComponent } from './alert-form.component';
-import { MediaFormComponent } from './media-form.component';
+import { MediaFormComponent, MediaSubmitPayload } from './media-form.component';
 import { ProblemDetailModalComponent } from './problem-detail-modal.component';
 
 type CitizenTab = 'alerts' | 'my-alerts' | 'approved-alerts' | 'notifications';
@@ -86,17 +85,17 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  get isActiveTableLoading(): boolean {
-    return this.currentTab() === 'my-alerts' ? this.myAlertsLoading() : this.allAlertsLoading();
-  }
+  readonly isActiveTableLoading = computed(() =>
+    this.currentTab() === 'my-alerts' ? this.myAlertsLoading() : this.allAlertsLoading()
+  );
 
-  get activePage(): ApiPage<AlertResponse> {
-    return this.currentTab() === 'my-alerts' ? this.myAlertsPage() : this.allAlertsPage();
-  }
+  readonly activePage = computed(() =>
+    this.currentTab() === 'my-alerts' ? this.myAlertsPage() : this.allAlertsPage()
+  );
 
-  get activeAlertTab(): 'alerts' | 'my-alerts' {
-    return this.currentTab() === 'my-alerts' ? 'my-alerts' : 'alerts';
-  }
+  readonly activeAlertTab = computed<'alerts' | 'my-alerts'>(() =>
+    this.currentTab() === 'my-alerts' ? 'my-alerts' : 'alerts'
+  );
 
   get hasOpenModal(): boolean {
     return this.showAlertModal || this.showProblemModal || this.showAlertFormModal || this.showMediaModal;
@@ -201,13 +200,11 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   }
 
   onRemoveImage(imageUrl: string): void {
-    const target = this.selectedAlert ?? this.editingAlert;
-    if (!target) return;
+    if (!this.selectedAlert) return;
     this.subscriptions.add(
-      this.alertsService.removeImage(target.id, imageUrl).subscribe({
+      this.alertsService.removeImage(this.selectedAlert.id, imageUrl).subscribe({
         next: (updated) => {
-          if (this.selectedAlert) this.selectedAlert = updated;
-          if (this.editingAlert) this.editingAlert = updated;
+          this.selectedAlert = updated;
           this.successMessage.set('Photo supprimée avec succès');
           this.loadAllTabsData();
         },
@@ -217,13 +214,11 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   }
 
   onRemoveVideo(videoUrl: string): void {
-    const target = this.selectedAlert ?? this.editingAlert;
-    if (!target) return;
+    if (!this.selectedAlert) return;
     this.subscriptions.add(
-      this.alertsService.removeVideo(target.id, videoUrl).subscribe({
+      this.alertsService.removeVideo(this.selectedAlert.id, videoUrl).subscribe({
         next: (updated) => {
-          if (this.selectedAlert) this.selectedAlert = updated;
-          if (this.editingAlert) this.editingAlert = updated;
+          this.selectedAlert = updated;
           this.successMessage.set('Vidéo supprimée avec succès');
           this.loadAllTabsData();
         },

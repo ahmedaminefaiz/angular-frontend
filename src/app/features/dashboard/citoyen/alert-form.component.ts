@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -17,6 +18,7 @@ import {
   LocationPickResult
 } from './location-map-picker.component';
 import { formatCoordinate, isInMorocco } from '../../../shared/morocco-location';
+import { AlertsService } from '../../../services/alerts.service';
 
 @Component({
   selector: 'app-alert-form',
@@ -31,10 +33,10 @@ export class AlertFormComponent implements OnInit {
 
   @Output() readonly submitted = new EventEmitter<CreateAlertRequest>();
   @Output() readonly cancelled = new EventEmitter<void>();
-  @Output() readonly removeImage = new EventEmitter<string>();
-  @Output() readonly removeVideo = new EventEmitter<string>();
 
   private readonly fb = inject(FormBuilder);
+  private readonly alertsService = inject(AlertsService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly form = this.fb.group(
     {
@@ -55,6 +57,7 @@ export class AlertFormComponent implements OnInit {
   showLocationMap = false;
   mapInitialLat: number | null = null;
   mapInitialLng: number | null = null;
+  mediaError = '';
   readonly formatCoordinate = formatCoordinate;
 
   ngOnInit(): void {
@@ -69,6 +72,28 @@ export class AlertFormComponent implements OnInit {
         priority: this.editing.priority
       });
     }
+  }
+
+  removeImage(imageUrl: string): void {
+    if (!this.editing) return;
+    this.mediaError = '';
+    this.alertsService.removeImage(this.editing.id, imageUrl)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => { this.editing = updated; },
+        error: () => { this.mediaError = 'Impossible de supprimer cette photo.'; }
+      });
+  }
+
+  removeVideo(videoUrl: string): void {
+    if (!this.editing) return;
+    this.mediaError = '';
+    this.alertsService.removeVideo(this.editing.id, videoUrl)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => { this.editing = updated; },
+        error: () => { this.mediaError = 'Impossible de supprimer cette vidéo.'; }
+      });
   }
 
   openLocationMap(): void {

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ProblemResponse } from '../../../models/problem.models';
 
@@ -6,7 +6,8 @@ import { ProblemResponse } from '../../../models/problem.models';
   selector: 'app-problem-detail-modal',
   standalone: true,
   imports: [DatePipe],
-  templateUrl: './problem-detail-modal.component.html'
+  templateUrl: './problem-detail-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProblemDetailModalComponent {
   @Input({ required: true }) problem!: ProblemResponse;

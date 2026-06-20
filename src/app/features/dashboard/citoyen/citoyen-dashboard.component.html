@@ -26,10 +26,10 @@
 
   @if (currentTab() === 'alerts' || currentTab() === 'my-alerts') {
     <app-alert-table
-      [page]="activePage"
-      [loading]="isActiveTableLoading"
+      [page]="activePage()"
+      [loading]="isActiveTableLoading()"
       [currentUserId]="currentUserId"
-      [tab]="activeAlertTab"
+      [tab]="activeAlertTab()"
       (view)="openAlertDetails($event)"
       (edit)="openEditForm($event)"
       (remove)="deleteAlert($event)"
@@ -103,8 +103,6 @@
     [serverError]="alertFormError()"
     (submitted)="onAlertFormSubmitted($event)"
     (cancelled)="closeAllModals()"
-    (removeImage)="onRemoveImage($event)"
-    (removeVideo)="onRemoveVideo($event)"
   />
 }
 
