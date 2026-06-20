@@ -64,7 +64,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   readonly categoryList = signal<{ id: number; name: string }[]>([]);
 
-  private readonly minSkeletonMs = 1000;
+  private readonly minSkeletonMs = 300;
   private readonly loadingTimers: ReturnType<typeof setTimeout>[] = [];
   private readonly subscriptions = new Subscription();
 
