@@ -4,6 +4,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { Subscription } from 'rxjs';
 import { TokenService } from '../../../core/services/token.service';
 import { NotificationService } from '../../../services/notification.service';
+import { NotificationResponse } from '../../../models/notification.models';
 import { Role } from '../../../models/auth.models';
 
 interface NavItem {
@@ -22,8 +23,11 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
   navItems: NavItem[] = [];
   sidebarOpen = false;
   unreadCount = 0;
+  toast: NotificationResponse | null = null;
 
   private layoutSub: Subscription | null = null;
+  private toastSub: Subscription | null = null;
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private tokenService: TokenService,
@@ -44,12 +48,24 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
       this.layoutSub = this.notificationService.unreadCount$.subscribe(n => {
         this.unreadCount = n;
       });
+      this.toastSub = this.notificationService.live$.subscribe(notif => {
+        this.toast = notif;
+        if (this.toastTimer) clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => { this.toast = null; }, 5000);
+      });
     }
   }
 
   ngOnDestroy(): void {
     this.notificationService.disconnect();
     this.layoutSub?.unsubscribe();
+    this.toastSub?.unsubscribe();
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+  }
+
+  dismissToast(): void {
+    this.toast = null;
+    if (this.toastTimer) clearTimeout(this.toastTimer);
   }
 
   toggleSidebar() {

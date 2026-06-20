@@ -18,6 +18,7 @@ import { AlertDetailModalComponent } from './alert-detail-modal.component';
 import { AlertFormComponent } from './alert-form.component';
 import { MediaFormComponent, MediaSubmitPayload } from './media-form.component';
 import { ProblemDetailModalComponent } from './problem-detail-modal.component';
+import { NotificationListComponent } from './notification-list.component';
 
 type CitizenTab = 'alerts' | 'my-alerts' | 'approved-alerts' | 'notifications';
 
@@ -30,7 +31,8 @@ type CitizenTab = 'alerts' | 'my-alerts' | 'approved-alerts' | 'notifications';
     AlertDetailModalComponent,
     AlertFormComponent,
     MediaFormComponent,
-    ProblemDetailModalComponent
+    ProblemDetailModalComponent,
+    NotificationListComponent
   ],
   templateUrl: './citoyen-dashboard.component.html'
 })
