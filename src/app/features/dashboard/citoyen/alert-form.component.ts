@@ -60,8 +60,18 @@ export class AlertFormComponent implements OnInit {
   mediaError = '';
   readonly formatCoordinate = formatCoordinate;
 
+  // Local copies so reassignment triggers CD reliably (independent of @Input mutation)
+  localImages: string[] = [];
+  localVideos: string[] = [];
+
+  // Per-URL state: undefined = normal | 'selected' = marked for delete | 'deleting' = API in progress
+  imageState = new Map<string, 'selected' | 'deleting'>();
+  videoState = new Map<string, 'selected' | 'deleting'>();
+
   ngOnInit(): void {
     if (this.editing) {
+      this.localImages = [...this.editing.images];
+      this.localVideos = [...this.editing.videos];
       this.form.reset({
         title: this.editing.title,
         description: this.editing.description,
@@ -74,25 +84,59 @@ export class AlertFormComponent implements OnInit {
     }
   }
 
-  removeImage(imageUrl: string): void {
-    if (!this.editing) return;
+  toggleImageSelect(url: string): void {
+    if (this.imageState.get(url) === 'deleting') return;
+    if (this.imageState.has(url)) {
+      this.imageState.delete(url);
+    } else {
+      this.imageState.set(url, 'selected');
+    }
+  }
+
+  confirmDeleteImage(url: string): void {
+    if (!this.editing || this.imageState.get(url) === 'deleting') return;
+    this.imageState.set(url, 'deleting');
     this.mediaError = '';
-    this.alertsService.removeImage(this.editing.id, imageUrl)
+    this.alertsService.removeImage(this.editing.id, url)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (updated) => { this.editing = updated; },
-        error: () => { this.mediaError = 'Impossible de supprimer cette photo.'; }
+        next: (updated) => {
+          this.editing = updated;
+          this.localImages = [...updated.images];
+          this.imageState.delete(url);
+        },
+        error: () => {
+          this.imageState.delete(url);
+          this.mediaError = 'Impossible de supprimer cette photo.';
+        }
       });
   }
 
-  removeVideo(videoUrl: string): void {
-    if (!this.editing) return;
+  toggleVideoSelect(url: string): void {
+    if (this.videoState.get(url) === 'deleting') return;
+    if (this.videoState.has(url)) {
+      this.videoState.delete(url);
+    } else {
+      this.videoState.set(url, 'selected');
+    }
+  }
+
+  confirmDeleteVideo(url: string): void {
+    if (!this.editing || this.videoState.get(url) === 'deleting') return;
+    this.videoState.set(url, 'deleting');
     this.mediaError = '';
-    this.alertsService.removeVideo(this.editing.id, videoUrl)
+    this.alertsService.removeVideo(this.editing.id, url)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (updated) => { this.editing = updated; },
-        error: () => { this.mediaError = 'Impossible de supprimer cette vidéo.'; }
+        next: (updated) => {
+          this.editing = updated;
+          this.localVideos = [...updated.videos];
+          this.videoState.delete(url);
+        },
+        error: () => {
+          this.videoState.delete(url);
+          this.mediaError = 'Impossible de supprimer cette vidéo.';
+        }
       });
   }
 
