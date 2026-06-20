@@ -83,7 +83,13 @@
 </div>
 
 @if (showAlertModal && selectedAlert) {
-  <app-alert-detail-modal [alert]="selectedAlert" (close)="closeAllModals()" />
+  <app-alert-detail-modal
+    [alert]="selectedAlert"
+    [canManage]="canManageSelected"
+    (close)="closeAllModals()"
+    (removeImage)="onRemoveImage($event)"
+    (removeVideo)="onRemoveVideo($event)"
+  />
 }
 
 @if (showProblemModal && selectedProblem) {
@@ -97,6 +103,8 @@
     [serverError]="alertFormError()"
     (submitted)="onAlertFormSubmitted($event)"
     (cancelled)="closeAllModals()"
+    (removeImage)="onRemoveImage($event)"
+    (removeVideo)="onRemoveVideo($event)"
   />
 }
 

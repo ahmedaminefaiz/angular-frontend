@@ -122,6 +122,55 @@
           <option value="CRITICAL">Critique</option>
         </select>
       </div>
+      <!-- Médias existants (mode édition uniquement) -->
+      @if (editing && (editing.images.length > 0 || editing.videos.length > 0)) {
+        <section class="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p class="mb-3 text-sm font-semibold text-slate-700">Médias attachés</p>
+
+          @if (editing.images.length > 0) {
+            <p class="mb-2 text-xs font-medium text-slate-500">Photos</p>
+            <div class="mb-3 flex flex-wrap gap-2">
+              @for (img of editing.images; track img) {
+                <div class="group relative">
+                  <img [src]="img" alt="photo" class="h-24 w-24 rounded-lg border border-slate-200 object-cover" />
+                  <button
+                    type="button"
+                    class="absolute right-1 top-1 hidden rounded-full bg-rose-600 p-1 text-white shadow group-hover:flex items-center justify-center"
+                    title="Supprimer"
+                    (click)="removeImage.emit(img)"
+                  >
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          @if (editing.videos.length > 0) {
+            <p class="mb-2 text-xs font-medium text-slate-500">Vidéos</p>
+            <div class="flex flex-wrap gap-2">
+              @for (vid of editing.videos; track vid) {
+                <div class="group relative">
+                  <video [src]="vid" class="h-24 w-36 rounded-lg border border-slate-200 object-cover" controls></video>
+                  <button
+                    type="button"
+                    class="absolute right-1 top-1 hidden rounded-full bg-rose-600 p-1 text-white shadow group-hover:flex items-center justify-center"
+                    title="Supprimer"
+                    (click)="removeVideo.emit(vid)"
+                  >
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+
       <div class="md:col-span-2 flex flex-col items-end gap-2 pt-2">
         @if (serverError) {
           <p class="w-full text-right text-xs text-rose-600">{{ serverError }}</p>

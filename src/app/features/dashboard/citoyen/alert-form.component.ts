@@ -31,6 +31,8 @@ export class AlertFormComponent implements OnInit {
 
   @Output() readonly submitted = new EventEmitter<CreateAlertRequest>();
   @Output() readonly cancelled = new EventEmitter<void>();
+  @Output() readonly removeImage = new EventEmitter<string>();
+  @Output() readonly removeVideo = new EventEmitter<string>();
 
   private readonly fb = inject(FormBuilder);
 

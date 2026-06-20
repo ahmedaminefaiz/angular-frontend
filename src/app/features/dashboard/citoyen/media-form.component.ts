@@ -1,19 +1,17 @@
 import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CloudinaryService } from '../../../services/cloudinary.service';
 
 export type MediaType = 'image' | 'video';
 
 export interface MediaSubmitPayload {
   mediaUrl: string;
-  description?: string;
   mediaType: MediaType;
 }
 
 @Component({
   selector: 'app-media-form',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [],
   templateUrl: './media-form.component.html'
 })
 export class MediaFormComponent {
@@ -22,21 +20,28 @@ export class MediaFormComponent {
   @Output() readonly submitted = new EventEmitter<MediaSubmitPayload>();
   @Output() readonly cancelled = new EventEmitter<void>();
 
-  private readonly fb = inject(NonNullableFormBuilder);
   private readonly cloudinary = inject(CloudinaryService);
 
-  readonly form = this.fb.group({ description: [''] });
-
+  selectedType: MediaType = 'image';
+  selectedFile: File | null = null;
   uploading = false;
   uploadError = '';
-  selectedFile: File | null = null;
-  detectedType: MediaType = 'image';
+
+  get accept(): string {
+    return this.selectedType === 'video' ? 'video/*' : 'image/*';
+  }
+
+  selectType(type: MediaType): void {
+    if (this.selectedType === type) return;
+    this.selectedType = type;
+    this.selectedFile = null;
+    this.uploadError = '';
+  }
 
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     this.selectedFile = file;
-    this.detectedType = file.type.startsWith('video/') ? 'video' : 'image';
     this.uploadError = '';
   }
 
@@ -45,17 +50,13 @@ export class MediaFormComponent {
       this.uploadError = 'Sélectionnez un fichier.';
       return;
     }
-    const folder = `alert/${this.alertId}/${this.detectedType}`;
+    const folder = `alert/${this.alertId}/${this.selectedType}`;
     this.uploading = true;
     this.uploadError = '';
-    this.cloudinary.upload(this.selectedFile, this.detectedType, folder).subscribe({
+    this.cloudinary.upload(this.selectedFile, this.selectedType, folder).subscribe({
       next: (url) => {
         this.uploading = false;
-        this.submitted.emit({
-          mediaUrl: url,
-          description: this.form.getRawValue().description || undefined,
-          mediaType: this.detectedType
-        });
+        this.submitted.emit({ mediaUrl: url, mediaType: this.selectedType });
       },
       error: () => {
         this.uploading = false;

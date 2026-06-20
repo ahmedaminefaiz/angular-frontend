@@ -10,7 +10,10 @@ import { AlertResponse } from '../../../models/alert.models';
 })
 export class AlertDetailModalComponent {
   @Input({ required: true }) alert!: AlertResponse;
+  @Input() canManage = false;
   @Output() readonly close = new EventEmitter<void>();
+  @Output() readonly removeImage = new EventEmitter<string>();
+  @Output() readonly removeVideo = new EventEmitter<string>();
 
   private readonly sanitizer = inject(DomSanitizer);
 

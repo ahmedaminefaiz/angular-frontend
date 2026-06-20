@@ -102,6 +102,11 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     return this.showAlertModal || this.showProblemModal || this.showAlertFormModal || this.showMediaModal;
   }
 
+  get canManageSelected(): boolean {
+    if (!this.selectedAlert) return false;
+    return this.selectedAlert.user.id === this.currentUserId && this.selectedAlert.status === 'NEW';
+  }
+
   changePage(nextPage: number): void {
     if (nextPage < 0) return;
     if (this.currentTab() === 'my-alerts') {
@@ -181,8 +186,8 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     this.mediaFormError.set('');
     if (!this.selectedAlert) return;
     const call = payload.mediaType === 'video'
-      ? this.alertsService.addVideo(this.selectedAlert.id, payload)
-      : this.alertsService.addImage(this.selectedAlert.id, payload);
+      ? this.alertsService.addVideo(this.selectedAlert.id, { mediaUrl: payload.mediaUrl })
+      : this.alertsService.addImage(this.selectedAlert.id, { mediaUrl: payload.mediaUrl });
     this.subscriptions.add(
       call.subscribe({
         next: () => {
@@ -191,6 +196,38 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
           this.loadAllTabsData();
         },
         error: (err) => this.mediaFormError.set(this.extractApiError(err))
+      })
+    );
+  }
+
+  onRemoveImage(imageUrl: string): void {
+    const target = this.selectedAlert ?? this.editingAlert;
+    if (!target) return;
+    this.subscriptions.add(
+      this.alertsService.removeImage(target.id, imageUrl).subscribe({
+        next: (updated) => {
+          if (this.selectedAlert) this.selectedAlert = updated;
+          if (this.editingAlert) this.editingAlert = updated;
+          this.successMessage.set('Photo supprimée avec succès');
+          this.loadAllTabsData();
+        },
+        error: (err) => this.pageErrorMessage.set(this.extractApiError(err))
+      })
+    );
+  }
+
+  onRemoveVideo(videoUrl: string): void {
+    const target = this.selectedAlert ?? this.editingAlert;
+    if (!target) return;
+    this.subscriptions.add(
+      this.alertsService.removeVideo(target.id, videoUrl).subscribe({
+        next: (updated) => {
+          if (this.selectedAlert) this.selectedAlert = updated;
+          if (this.editingAlert) this.editingAlert = updated;
+          this.successMessage.set('Vidéo supprimée avec succès');
+          this.loadAllTabsData();
+        },
+        error: (err) => this.pageErrorMessage.set(this.extractApiError(err))
       })
     );
   }
