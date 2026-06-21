@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter } from '@angular/core';
 import { AlertResponse, ApiPage } from '../../../models/alert.models';
 
 type AlertTab = 'alerts' | 'my-alerts';
@@ -7,7 +7,8 @@ type AlertTab = 'alerts' | 'my-alerts';
   selector: 'app-alert-table',
   standalone: true,
   imports: [],
-  templateUrl: './alert-table.component.html'
+  templateUrl: './alert-table.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AlertTableComponent {
   @Input() page: ApiPage<AlertResponse> = { content: [], totalElements: 0, totalPages: 0, size: 30, number: 0 };

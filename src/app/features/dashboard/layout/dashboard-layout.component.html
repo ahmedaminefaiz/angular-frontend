@@ -36,8 +36,13 @@
           routerLinkActive="bg-teal-500/20 text-teal-300 font-semibold"
           [routerLinkActiveOptions]="{ exact: true }"
           (click)="sidebarOpen = false"
-          class="flex items-center px-4 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-          {{ item.label }}
+          class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+          <span class="flex-1">{{ item.label }}</span>
+          @if (isNotifRoute(item) && unreadCount > 0) {
+            <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-500 px-1 text-xs font-bold text-white">
+              {{ unreadCount > 99 ? '99+' : unreadCount }}
+            </span>
+          }
         </a>
       }
     </nav>
@@ -83,3 +88,19 @@
   </div>
 
 </div>
+
+<!-- Toast: real-time notification -->
+@if (toast) {
+  <div class="fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-3 rounded-xl border border-teal-200 bg-white px-4 py-3.5 shadow-lg">
+    <div class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-teal-500"></div>
+    <p class="flex-1 text-sm text-slate-700">{{ toast.message }}</p>
+    <button
+      type="button"
+      class="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+      (click)="dismissToast()">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+}

@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -17,6 +18,7 @@ import {
   LocationPickResult
 } from './location-map-picker.component';
 import { formatCoordinate, isInMorocco } from '../../../shared/morocco-location';
+import { AlertsService } from '../../../services/alerts.service';
 
 @Component({
   selector: 'app-alert-form',
@@ -33,6 +35,8 @@ export class AlertFormComponent implements OnInit {
   @Output() readonly cancelled = new EventEmitter<void>();
 
   private readonly fb = inject(FormBuilder);
+  private readonly alertsService = inject(AlertsService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly form = this.fb.group(
     {
@@ -53,10 +57,21 @@ export class AlertFormComponent implements OnInit {
   showLocationMap = false;
   mapInitialLat: number | null = null;
   mapInitialLng: number | null = null;
+  mediaError = '';
   readonly formatCoordinate = formatCoordinate;
+
+  // Local copies so reassignment triggers CD reliably (independent of @Input mutation)
+  localImages: string[] = [];
+  localVideos: string[] = [];
+
+  // Per-URL state: undefined = normal | 'selected' = marked for delete | 'deleting' = API in progress
+  imageState = new Map<string, 'selected' | 'deleting'>();
+  videoState = new Map<string, 'selected' | 'deleting'>();
 
   ngOnInit(): void {
     if (this.editing) {
+      this.localImages = [...this.editing.images];
+      this.localVideos = [...this.editing.videos];
       this.form.reset({
         title: this.editing.title,
         description: this.editing.description,
@@ -67,6 +82,62 @@ export class AlertFormComponent implements OnInit {
         priority: this.editing.priority
       });
     }
+  }
+
+  toggleImageSelect(url: string): void {
+    if (this.imageState.get(url) === 'deleting') return;
+    if (this.imageState.has(url)) {
+      this.imageState.delete(url);
+    } else {
+      this.imageState.set(url, 'selected');
+    }
+  }
+
+  confirmDeleteImage(url: string): void {
+    if (!this.editing || this.imageState.get(url) === 'deleting') return;
+    this.imageState.set(url, 'deleting');
+    this.mediaError = '';
+    this.alertsService.removeImage(this.editing.id, url)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => {
+          this.editing = updated;
+          this.localImages = [...updated.images];
+          this.imageState.delete(url);
+        },
+        error: () => {
+          this.imageState.delete(url);
+          this.mediaError = 'Impossible de supprimer cette photo.';
+        }
+      });
+  }
+
+  toggleVideoSelect(url: string): void {
+    if (this.videoState.get(url) === 'deleting') return;
+    if (this.videoState.has(url)) {
+      this.videoState.delete(url);
+    } else {
+      this.videoState.set(url, 'selected');
+    }
+  }
+
+  confirmDeleteVideo(url: string): void {
+    if (!this.editing || this.videoState.get(url) === 'deleting') return;
+    this.videoState.set(url, 'deleting');
+    this.mediaError = '';
+    this.alertsService.removeVideo(this.editing.id, url)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => {
+          this.editing = updated;
+          this.localVideos = [...updated.videos];
+          this.videoState.delete(url);
+        },
+        error: () => {
+          this.videoState.delete(url);
+          this.mediaError = 'Impossible de supprimer cette vidéo.';
+        }
+      });
   }
 
   openLocationMap(): void {

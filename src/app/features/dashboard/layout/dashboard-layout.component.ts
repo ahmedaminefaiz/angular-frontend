@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { TokenService } from '../../../core/services/token.service';
+import { NotificationService } from '../../../services/notification.service';
+import { NotificationResponse } from '../../../models/notification.models';
 import { Role } from '../../../models/auth.models';
 
 interface NavItem {
@@ -15,19 +18,54 @@ interface NavItem {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NgClass],
   templateUrl: './dashboard-layout.component.html'
 })
-export class DashboardLayoutComponent implements OnInit {
+export class DashboardLayoutComponent implements OnInit, OnDestroy {
   role: Role | null = null;
   navItems: NavItem[] = [];
   sidebarOpen = false;
+  unreadCount = 0;
+  toast: NotificationResponse | null = null;
+
+  private layoutSub: Subscription | null = null;
+  private toastSub: Subscription | null = null;
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private tokenService: TokenService,
-    private router: Router
+    private router: Router,
+    private readonly notificationService: NotificationService
   ) {}
 
   ngOnInit() {
     this.role = this.tokenService.getRole();
     this.navItems = this.buildNavItems(this.role);
+
+    if (this.role === 'CITOYEN') {
+      const token = this.tokenService.getToken();
+      if (token) {
+        this.notificationService.initForUser();
+        this.notificationService.connect(token);
+      }
+      this.layoutSub = this.notificationService.unreadCount$.subscribe(n => {
+        this.unreadCount = n;
+      });
+      this.toastSub = this.notificationService.live$.subscribe(notif => {
+        this.toast = notif;
+        if (this.toastTimer) clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => { this.toast = null; }, 5000);
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.notificationService.disconnect();
+    this.layoutSub?.unsubscribe();
+    this.toastSub?.unsubscribe();
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+  }
+
+  dismissToast(): void {
+    this.toast = null;
+    if (this.toastTimer) clearTimeout(this.toastTimer);
   }
 
   toggleSidebar() {
@@ -35,8 +73,13 @@ export class DashboardLayoutComponent implements OnInit {
   }
 
   logout() {
+    this.notificationService.disconnect();
     this.tokenService.removeToken();
     this.router.navigate(['/login']);
+  }
+
+  isNotifRoute(item: NavItem): boolean {
+    return item.route.includes('notifications');
   }
 
   get roleLabel(): string {
@@ -56,7 +99,7 @@ export class DashboardLayoutComponent implements OnInit {
           { label: 'Alerts', route: '/dashboard/citoyen/alerts' },
           { label: 'My Alerts', route: '/dashboard/citoyen/my-alerts' },
           { label: 'Approved Alerts', route: '/dashboard/citoyen/approved-alerts' },
-          { label: 'Notification', route: '/dashboard/citoyen/notifications' }
+          { label: 'Notifications', route: '/dashboard/citoyen/notifications' }
         ];
       case 'AGENT':
         return [

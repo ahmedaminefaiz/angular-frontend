@@ -26,10 +26,10 @@
 
   @if (currentTab() === 'alerts' || currentTab() === 'my-alerts') {
     <app-alert-table
-      [page]="activePage"
-      [loading]="isActiveTableLoading"
+      [page]="activePage()"
+      [loading]="isActiveTableLoading()"
       [currentUserId]="currentUserId"
-      [tab]="activeAlertTab"
+      [tab]="activeAlertTab()"
       (view)="openAlertDetails($event)"
       (edit)="openEditForm($event)"
       (remove)="deleteAlert($event)"
@@ -76,14 +76,18 @@
   }
 
   @if (currentTab() === 'notifications') {
-    <div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-400 shadow-sm">
-      Notification: section réservée pour une prochaine itération.
-    </div>
+    <app-notification-list />
   }
 </div>
 
 @if (showAlertModal && selectedAlert) {
-  <app-alert-detail-modal [alert]="selectedAlert" (close)="closeAllModals()" />
+  <app-alert-detail-modal
+    [alert]="selectedAlert"
+    [canManage]="canManageSelected"
+    (close)="closeAllModals()"
+    (removeImage)="onRemoveImage($event)"
+    (removeVideo)="onRemoveVideo($event)"
+  />
 }
 
 @if (showProblemModal && selectedProblem) {
@@ -102,6 +106,7 @@
 
 @if (showMediaModal && selectedAlert) {
   <app-media-form
+    [alertId]="selectedAlert.id"
     [serverError]="mediaFormError()"
     (submitted)="onMediaFormSubmitted($event)"
     (cancelled)="closeAllModals()"
