@@ -31,10 +31,22 @@ export const routes: Routes = [
         path: 'agent',
         canActivate: [roleGuard],
         data: { roles: ['AGENT'] },
-        loadComponent: () =>
-          import('./features/dashboard/agent/agent-dashboard.component').then(
-            m => m.AgentDashboardComponent
-          )
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/dashboard/agent/agent-dashboard.component').then(
+                m => m.AgentDashboardComponent
+              )
+          },
+          {
+            path: 'problems',
+            loadComponent: () =>
+              import('./features/dashboard/agent/problems/agent-problems.component').then(
+                m => m.AgentProblemsComponent
+              )
+          }
+        ]
       },
       {
         path: 'super-agent',
@@ -53,6 +65,20 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/dashboard/super-agent/pending-agents/pending-agents.component').then(
                 m => m.PendingAgentsComponent
+              )
+          },
+          {
+            path: 'alerts',
+            loadComponent: () =>
+              import('./features/dashboard/super-agent/alerts/super-agent-alerts.component').then(
+                m => m.SuperAgentAlertsComponent
+              )
+          },
+          {
+            path: 'problems',
+            loadComponent: () =>
+              import('./features/dashboard/super-agent/problems/super-agent-problems.component').then(
+                m => m.SuperAgentProblemsComponent
               )
           }
         ]
@@ -74,6 +100,13 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/dashboard/admin/pending-super-agents/pending-super-agents.component').then(
                 m => m.PendingSuperAgentsComponent
+              )
+          },
+          {
+            path: 'problem-types',
+            loadComponent: () =>
+              import('./features/dashboard/admin/problem-types/admin-problem-types.component').then(
+                m => m.AdminProblemTypesComponent
               )
           }
         ]

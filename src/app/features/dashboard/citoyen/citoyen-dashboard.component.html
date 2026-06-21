@@ -12,6 +12,22 @@
     </button>
   </div>
 
+  <!-- Stats summary -->
+  <div class="grid grid-cols-3 gap-3">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 text-center">
+      <p class="text-2xl font-bold text-teal-600">{{ myAlertsPage().totalElements }}</p>
+      <p class="text-xs text-slate-500 mt-1">Mes signalements</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 text-center">
+      <p class="text-2xl font-bold text-yellow-500">{{ myAlertsInProgress }}</p>
+      <p class="text-xs text-slate-500 mt-1">En cours</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 text-center">
+      <p class="text-2xl font-bold text-emerald-500">{{ problemsPage().totalElements }}</p>
+      <p class="text-xs text-slate-500 mt-1">Problèmes traités</p>
+    </div>
+  </div>
+
   @if (successMessage()) {
     <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
       {{ successMessage() }}
