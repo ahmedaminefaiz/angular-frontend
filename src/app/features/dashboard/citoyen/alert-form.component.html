@@ -142,6 +142,7 @@
                     [class.border-rose-400]="imageState.get(img) === 'selected'"
                     [class.border-slate-300]="imageState.get(img) === 'deleting'"
                     [class.opacity-40]="imageState.get(img) !== undefined"
+                    (error)="$any($event.target).src = imgPlaceholder"
                   />
 
                   <!-- Spinner overlay — deleting -->

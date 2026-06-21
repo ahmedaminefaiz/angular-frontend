@@ -8,16 +8,14 @@ import {
   ApiPage,
   CreateAlertRequest
 } from '../../../models/alert.models';
-import { ProblemResponse } from '../../../models/problem.models';
 import { TokenService } from '../../../core/services/token.service';
 import { AlertsService } from '../../../services/alerts.service';
-import { ProblemsService } from '../../../services/problems.service';
 import { ProblemTypesService } from '../../../services/problem-types.service';
 import { AlertTableComponent } from './alert-table.component';
 import { AlertDetailModalComponent } from './alert-detail-modal.component';
 import { AlertFormComponent } from './alert-form.component';
 import { MediaFormComponent, MediaSubmitPayload } from './media-form.component';
-import { ProblemDetailModalComponent } from './problem-detail-modal.component';
+import { ApprovedAlertsComponent } from './approved-alerts.component';
 import { NotificationListComponent } from './notification-list.component';
 
 type CitizenTab = 'alerts' | 'my-alerts' | 'approved-alerts' | 'notifications';
@@ -31,7 +29,7 @@ type CitizenTab = 'alerts' | 'my-alerts' | 'approved-alerts' | 'notifications';
     AlertDetailModalComponent,
     AlertFormComponent,
     MediaFormComponent,
-    ProblemDetailModalComponent,
+    ApprovedAlertsComponent,
     NotificationListComponent
   ],
   templateUrl: './citoyen-dashboard.component.html'
@@ -42,11 +40,9 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   readonly allAlertsPage = signal<ApiPage<AlertResponse>>({ content: [], totalElements: 0, totalPages: 0, size: 30, number: 0 });
   readonly myAlertsPage = signal<ApiPage<AlertResponse>>({ content: [], totalElements: 0, totalPages: 0, size: 30, number: 0 });
-  readonly problemsPage = signal<ApiPage<ProblemResponse>>({ content: [], totalElements: 0, totalPages: 0, size: 9, number: 0 });
 
   readonly allAlertsLoading = signal(false);
   readonly myAlertsLoading = signal(false);
-  readonly problemsLoading = signal(false);
 
   readonly pageErrorMessage = signal('');
   readonly successMessage = signal('');
@@ -54,12 +50,10 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   readonly mediaFormError = signal('');
 
   showAlertModal = false;
-  showProblemModal = false;
   showAlertFormModal = false;
   showMediaModal = false;
 
   selectedAlert: AlertResponse | null = null;
-  selectedProblem: ProblemResponse | null = null;
   editingAlert: AlertResponse | null = null;
 
   readonly categoryList = signal<{ id: number; name: string }[]>([]);
@@ -70,7 +64,6 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly alertsService: AlertsService,
-    private readonly problemsService: ProblemsService,
     private readonly problemTypesService: ProblemTypesService,
     private readonly tokenService: TokenService,
     private readonly route: ActivatedRoute
@@ -100,7 +93,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   );
 
   get hasOpenModal(): boolean {
-    return this.showAlertModal || this.showProblemModal || this.showAlertFormModal || this.showMediaModal;
+    return this.showAlertModal || this.showAlertFormModal || this.showMediaModal;
   }
 
   get canManageSelected(): boolean {
@@ -120,11 +113,6 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   openAlertDetails(alert: AlertResponse): void {
     this.selectedAlert = alert;
     this.showAlertModal = true;
-  }
-
-  openProblemDetails(problem: ProblemResponse): void {
-    this.selectedProblem = problem;
-    this.showProblemModal = true;
   }
 
   openCreateForm(): void {
@@ -147,13 +135,11 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   closeAllModals(): void {
     this.showAlertModal = false;
-    this.showProblemModal = false;
     this.showAlertFormModal = false;
     this.showMediaModal = false;
     this.alertFormError.set('');
     this.mediaFormError.set('');
     this.selectedAlert = null;
-    this.selectedProblem = null;
   }
 
   onAlertFormSubmitted(payload: CreateAlertRequest): void {
@@ -242,11 +228,6 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
-  getProblemAssignedName(problem: ProblemResponse): string {
-    if (!problem.assignedTo) return 'Non assigné';
-    return `${problem.assignedTo.firstName} ${problem.assignedTo.lastName}`;
-  }
-
   private loadProblemTypes(): void {
     this.subscriptions.add(
       this.problemTypesService.getAll().subscribe((types) => {
@@ -258,14 +239,12 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   private loadAllTabsData(): void {
     this.fetchAllAlerts(0, 30, false);
     this.fetchMyAlerts(0, 30, false);
-    this.fetchProblems(0, 9, false);
   }
 
   private loadActiveTabData(): void {
     switch (this.currentTab()) {
       case 'alerts': this.fetchAllAlerts(0, 30, true); break;
       case 'my-alerts': this.fetchMyAlerts(0, 30, true); break;
-      case 'approved-alerts': this.fetchProblems(0, 9, true); break;
       default: break;
     }
   }
@@ -299,23 +278,6 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
         error: (err) => {
           this.setPageError(err);
           this.finishLoading(showSkeleton, startedAt, () => this.myAlertsLoading.set(false));
-        }
-      })
-    );
-  }
-
-  private fetchProblems(page: number, size: number, showSkeleton = true): void {
-    const startedAt = Date.now();
-    if (showSkeleton) this.problemsLoading.set(true);
-    this.subscriptions.add(
-      this.problemsService.getProblems(page, size).subscribe({
-        next: (response) => {
-          this.problemsPage.set(response);
-          this.finishLoading(showSkeleton, startedAt, () => this.problemsLoading.set(false));
-        },
-        error: (err) => {
-          this.setPageError(err);
-          this.finishLoading(showSkeleton, startedAt, () => this.problemsLoading.set(false));
         }
       })
     );
