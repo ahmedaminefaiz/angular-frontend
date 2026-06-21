@@ -39,7 +39,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
     this.role = this.tokenService.getRole();
     this.navItems = this.buildNavItems(this.role);
 
-    if (this.role === 'CITOYEN') {
+    if (this.role === 'CITOYEN' || this.role === 'AGENT') {
       const token = this.tokenService.getToken();
       if (token) {
         this.notificationService.initForUser();
@@ -105,7 +105,8 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
       case 'AGENT':
         return [
           { label: 'Tableau de bord', route: '/dashboard/agent' },
-          { label: 'Problèmes assignés', route: '/dashboard/agent/problems' }
+          { label: 'Problèmes assignés', route: '/dashboard/agent/problems' },
+          { label: 'Notifications', route: '/dashboard/agent/notifications' }
         ];
       case 'SUPER_AGENT':
         return [

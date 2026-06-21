@@ -45,6 +45,13 @@ export const routes: Routes = [
               import('./features/dashboard/agent/problems/agent-problems.component').then(
                 m => m.AgentProblemsComponent
               )
+          },
+          {
+            path: 'notifications',
+            loadComponent: () =>
+              import('./features/dashboard/agent/notifications/notification-list.component').then(
+                m => m.NotificationListComponent
+              )
           }
         ]
       },
