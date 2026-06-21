@@ -39,7 +39,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
     this.role = this.tokenService.getRole();
     this.navItems = this.buildNavItems(this.role);
 
-    if (this.role === 'CITOYEN') {
+    if (this.role === 'CITOYEN' || this.role === 'AGENT') {
       const token = this.tokenService.getToken();
       if (token) {
         this.notificationService.initForUser();
@@ -96,24 +96,30 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
     switch (role) {
       case 'CITOYEN':
         return [
-          { label: 'Alerts', route: '/dashboard/citoyen/alerts' },
-          { label: 'My Alerts', route: '/dashboard/citoyen/my-alerts' },
-          { label: 'Approved Alerts', route: '/dashboard/citoyen/approved-alerts' },
+
+          { label: 'Signalements', route: '/dashboard/citoyen/alerts' },
+          { label: 'Mes signalements', route: '/dashboard/citoyen/my-alerts' },
+          { label: 'Signalements approuvés', route: '/dashboard/citoyen/approved-alerts' },
           { label: 'Notifications', route: '/dashboard/citoyen/notifications' }
         ];
       case 'AGENT':
         return [
-          { label: 'Tableau de bord', route: '/dashboard/agent' }
+          { label: 'Tableau de bord', route: '/dashboard/agent' },
+          { label: 'Problèmes assignés', route: '/dashboard/agent/problems' },
+          { label: 'Notifications', route: '/dashboard/agent/notifications' }
         ];
       case 'SUPER_AGENT':
         return [
           { label: 'Tableau de bord', route: '/dashboard/super-agent' },
-          { label: 'Agents en attente', route: '/dashboard/super-agent/pending-agents' }
+          { label: 'Agents en attente', route: '/dashboard/super-agent/pending-agents' },
+          { label: 'Signalements à qualifier', route: '/dashboard/super-agent/alerts' },
+          { label: 'Mes problèmes', route: '/dashboard/super-agent/problems' }
         ];
       case 'ADMIN':
         return [
           { label: 'Tableau de bord', route: '/dashboard/admin' },
-          { label: 'Super-Agents en attente', route: '/dashboard/admin/pending-super-agents' }
+          { label: 'Super-Agents en attente', route: '/dashboard/admin/pending-super-agents' },
+          { label: 'Types de problèmes', route: '/dashboard/admin/problem-types' }
         ];
       default:
         return [];

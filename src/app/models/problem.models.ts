@@ -2,6 +2,26 @@ import { AlertStatus } from './alert.models';
 
 export type ProblemStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
 
+export interface CreateProblemRequest {
+  title?: string;
+  description?: string;
+  assignedToId: number;
+  alertIds: number[];
+}
+
+export interface UpdateProblemRequest {
+  title?: string;
+  description?: string;
+  assignedToId?: number;
+  addAlertIds?: number[];
+  removeAlertIds?: number[];
+}
+
+export interface ProblemStatusChangeRequest {
+  newStatus: ProblemStatus;
+  comment?: string;
+}
+
 export interface ProblemUserSummary {
   id: number;
   phone: string;

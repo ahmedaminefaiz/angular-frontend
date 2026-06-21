@@ -16,4 +16,16 @@ export class ProblemTypesService {
       catchError(() => of([]))
     );
   }
+
+  create(payload: { name: string; icon?: string }): Observable<ProblemTypeSummary> {
+    return this.http.post<ProblemTypeSummary>(this.base, payload);
+  }
+
+  update(id: number, payload: { name?: string; icon?: string }): Observable<ProblemTypeSummary> {
+    return this.http.put<ProblemTypeSummary>(`${this.base}/${id}`, payload);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}`);
+  }
 }

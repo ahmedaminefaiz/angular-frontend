@@ -1,0 +1,185 @@
+<div class="space-y-6 p-6">
+
+  <!-- En-tête -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-xl font-bold text-gray-900">Mes problèmes</h1>
+    <p class="text-sm text-gray-500">{{ problemsPage().totalElements }} problème(s) au total</p>
+  </div>
+
+  <!-- Messages -->
+  @if (successMessage()) {
+    <div class="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+      {{ successMessage() }}
+    </div>
+  }
+  @if (error()) {
+    <div class="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Filtre statut -->
+  <div class="flex items-center gap-2">
+    <label class="text-sm font-medium text-gray-700">Filtrer :</label>
+    <select [(ngModel)]="statusFilter"
+      class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      @for (s of allStatuses; track s.value) {
+        <option [value]="s.value">{{ s.label }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Chargement -->
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+    </div>
+  } @else if (filteredProblems.length === 0) {
+    <div class="rounded-xl border border-dashed border-gray-300 py-16 text-center">
+      <p class="text-gray-500">Aucun problème trouvé.</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (problem of filteredProblems; track problem.id) {
+        <!-- Carte problème -->
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+
+          <!-- Ligne principale -->
+          <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-mono text-xs text-gray-400">#{{ problem.id }}</span>
+                <h3 class="text-sm font-semibold text-gray-900 truncate">
+                  {{ problem.title || 'Problème sans titre' }}
+                </h3>
+                <span [class]="'inline-flex rounded-full px-2 py-0.5 text-xs font-medium ' + statusClass(problem.status)">
+                  {{ statusLabel(problem.status) }}
+                </span>
+              </div>
+              <div class="mt-1 flex flex-wrap gap-3 text-xs text-gray-500">
+                <span>{{ problem.alerts.length }} signalement(s)</span>
+                @if (problem.assignedTo) {
+                  <span>Agent : {{ problem.assignedTo.firstName }} {{ problem.assignedTo.lastName }}</span>
+                }
+                <span>Créé le {{ problem.createdAt | slice:0:10 }}</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <!-- Changer statut -->
+              @if (nextStatuses(problem.status).length > 0) {
+                <select
+                  (change)="changeStatus(problem, $any($event.target).value); $any($event.target).value = ''"
+                  class="rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Changer statut</option>
+                  @for (s of nextStatuses(problem.status); track s.value) {
+                    <option [value]="s.value">→ {{ s.label }}</option>
+                  }
+                </select>
+              }
+
+              <!-- Détails -->
+              <button (click)="toggleExpand(problem.id)"
+                class="rounded-lg border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                {{ expandedId() === problem.id ? 'Masquer' : 'Détails' }}
+              </button>
+
+              <!-- Modifier -->
+              @if (problem.status === 'NEW' || problem.status === 'IN_PROGRESS') {
+                <button (click)="openEdit(problem)"
+                  class="rounded-lg bg-blue-50 border border-blue-300 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors">
+                  Modifier
+                </button>
+              }
+
+              <!-- Supprimer -->
+              @if (problem.status === 'NEW') {
+                <button (click)="deleteProblem(problem)"
+                  class="rounded-lg bg-red-50 border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100 transition-colors">
+                  Supprimer
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Détails étendus -->
+          @if (expandedId() === problem.id) {
+            <div class="border-t border-gray-100 bg-gray-50 px-5 py-4 space-y-3">
+              @if (problem.description) {
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Description</p>
+                  <p class="text-sm text-gray-700">{{ problem.description }}</p>
+                </div>
+              }
+
+              <!-- Signalements liés -->
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">
+                  Signalements liés ({{ problem.alerts.length }})
+                </p>
+                @if (problem.alerts.length === 0) {
+                  <p class="text-sm text-gray-500 italic">Aucun signalement lié.</p>
+                } @else {
+                  <ul class="space-y-1">
+                    @for (a of problem.alerts; track a.id) {
+                      <li class="text-sm text-gray-700">
+                        <span class="font-mono text-gray-400">#{{ a.id }}</span> — {{ a.title }}
+                        <span [class]="'ml-2 inline-flex rounded-full px-1.5 py-0.5 text-xs font-medium ' + statusClass(a.status)">
+                          {{ statusLabel(a.status) }}
+                        </span>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+
+              <!-- Historique des statuts -->
+              @if (problem.statusHistory.length > 0) {
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Historique</p>
+                  <ul class="space-y-1">
+                    @for (h of problem.statusHistory; track h.id) {
+                      <li class="text-xs text-gray-600">
+                        {{ h.changedAt | slice:0:10 }} — {{ statusLabel(h.previousStatus) }} → {{ statusLabel(h.newStatus) }}
+                        @if (h.comment) { <span class="text-gray-400"> ({{ h.comment }})</span> }
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (problemsPage().totalPages > 1) {
+      <div class="flex items-center justify-between pt-2">
+        <p class="text-sm text-gray-500">
+          Page {{ problemsPage().number + 1 }} sur {{ problemsPage().totalPages }}
+        </p>
+        <div class="flex gap-1">
+          @for (p of totalPages; track p) {
+            <button (click)="loadProblems(p)"
+              [class]="p === problemsPage().number
+                ? 'rounded px-3 py-1 text-sm font-semibold bg-blue-600 text-white'
+                : 'rounded px-3 py-1 text-sm text-gray-600 hover:bg-gray-100'">
+              {{ p + 1 }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- Modal d'édition -->
+@if (editingProblem()) {
+  <app-edit-problem-form
+    [problem]="editingProblem()!"
+    [agents]="agents()"
+    (submitted)="onEditSubmitted($event)"
+    (cancelled)="editingProblem.set(null)"/>
+}
