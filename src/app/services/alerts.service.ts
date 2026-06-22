@@ -14,7 +14,7 @@ import {
 export class AlertsService {
   private readonly base = `${environment.apiUrl}/v1/alerts`;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
   getAlerts(page = 0, size = 30): Observable<ApiPage<AlertResponse>> {
     const params = this.createPageParams(page, size);
@@ -58,6 +58,16 @@ export class AlertsService {
   removeVideo(alertId: number, videoUrl: string): Observable<AlertResponse> {
     const params = new HttpParams().set('videoUrl', videoUrl);
     return this.http.delete<AlertResponse>(`${this.base}/${alertId}/videos`, { params });
+  }
+
+  getUnqualifiedAlerts(page = 0, size = 10): Observable<ApiPage<AlertResponse>> {
+    const params = this.createPageParams(page, size);
+    return this.http.get<ApiPage<AlertResponse>>(`${this.base}/unqualified`, { params });
+  }
+
+  getSimilarAlerts(alertId: number, radiusMeters = 300): Observable<AlertResponse[]> {
+    const params = new HttpParams().set('radius', String(radiusMeters));
+    return this.http.get<AlertResponse[]>(`${this.base}/${alertId}/similar`, { params });
   }
 
   private createPageParams(page: number, size: number): HttpParams {

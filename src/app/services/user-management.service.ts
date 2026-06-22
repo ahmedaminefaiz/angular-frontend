@@ -33,4 +33,12 @@ export class UserManagementService {
   rejectSuperAgent(id: number): Observable<string> {
     return this.http.post(`${this.base}/super-agents/${id}/reject`, {}, { responseType: 'text' });
   }
+
+  getActiveAgents(): Observable<UserSummaryResponse[]> {
+    return this.http.get<UserSummaryResponse[]>(`${this.base}/agents`);
+  }
+
+  getMyAgents(): Observable<UserSummaryResponse[]> {
+    return this.http.get<UserSummaryResponse[]>(`${this.base}/my-agents`);
+  }
 }

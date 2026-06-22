@@ -1,0 +1,155 @@
+<div class="space-y-6 p-6">
+
+  <!-- En-tête -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-xl font-bold text-gray-900">Signalements à qualifier</h1>
+    @if (selectedIds().size > 0) {
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-600">{{ selectedIds().size }} sélectionné(s)</span>
+        <button (click)="clearSelection()" class="text-sm text-gray-500 underline hover:text-gray-700">Tout désélectionner</button>
+        <button (click)="openQualifyForm()"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">
+          Créer un problème
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Messages -->
+  @if (successMessage()) {
+    <div class="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+      {{ successMessage() }}
+    </div>
+  }
+  @if (error()) {
+    <div class="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Barre de recherche -->
+  <div class="flex items-center gap-3">
+    <div class="relative flex-1 max-w-sm">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input [(ngModel)]="searchTerm" type="text" placeholder="Rechercher par titre, adresse ou catégorie…"
+        class="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+    </div>
+    @if (!loading()) {
+      <button (click)="selectAll()" class="text-sm text-blue-600 hover:underline">Tout sélectionner</button>
+    }
+  </div>
+
+  <!-- Chargement -->
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+    </div>
+  } @else if (filteredAlerts.length === 0) {
+    <div class="rounded-xl border border-dashed border-gray-300 py-16 text-center">
+      <p class="text-gray-500">Aucun signalement non qualifié.</p>
+    </div>
+  } @else {
+    <!-- Table -->
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="w-10 px-4 py-3"></th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">ID</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Titre</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Catégorie</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Adresse</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Statut</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Priorité</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Date</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Similarités</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @for (alert of filteredAlerts; track alert.id) {
+            <tr [class]="selectedIds().has(alert.id) ? 'bg-blue-50' : 'hover:bg-gray-50'">
+              <td class="px-4 py-3">
+                <input type="checkbox" [checked]="selectedIds().has(alert.id)"
+                  (change)="toggleSelect(alert.id)"
+                  class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"/>
+              </td>
+              <td class="px-4 py-3 text-sm font-mono text-gray-500">#{{ alert.id }}</td>
+              <td class="px-4 py-3 text-sm font-medium text-gray-900 max-w-xs">
+                <p class="truncate">{{ alert.title }}</p>
+                @if (alert.isAnonymous) {
+                  <span class="text-xs text-gray-400 italic">Anonyme</span>
+                }
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-600">{{ alert.category.name }}</td>
+              <td class="px-4 py-3 text-sm text-gray-500 max-w-xs">
+                <p class="truncate">{{ alert.address || '—' }}</p>
+              </td>
+              <td class="px-4 py-3">
+                <span [class]="'inline-flex rounded-full px-2 py-0.5 text-xs font-medium ' + statusClass(alert.status)">
+                  {{ statusLabel(alert.status) }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span [class]="'inline-flex rounded-full px-2 py-0.5 text-xs font-medium ' + priorityClass(alert.priority)">
+                  {{ alert.priority }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                {{ alert.createdAt | slice:0:10 }}
+              </td>
+              <td class="px-4 py-3">
+                <button (click)="toggleSimilar(alert.id)"
+                  class="inline-flex items-center gap-1 rounded-full border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors">
+                  <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101"/>
+                  </svg>
+                  Similarités
+                </button>
+              </td>
+            </tr>
+            @if (expandedSimilarId() === alert.id) {
+              <tr>
+                <td colspan="9" class="px-6 pb-4">
+                  <app-similar-alerts-panel
+                    [alertId]="alert.id"
+                    (include)="includeSimilarAlert($event)"/>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (alertsPage().totalPages > 1) {
+      <div class="flex items-center justify-between pt-2">
+        <p class="text-sm text-gray-500">
+          Page {{ alertsPage().number + 1 }} sur {{ alertsPage().totalPages }}
+          · {{ alertsPage().totalElements }} signalement(s) au total
+        </p>
+        <div class="flex gap-1">
+          @for (p of totalPages; track p) {
+            <button (click)="loadAlerts(p)"
+              [class]="p === alertsPage().number
+                ? 'rounded px-3 py-1 text-sm font-semibold bg-blue-600 text-white'
+                : 'rounded px-3 py-1 text-sm text-gray-600 hover:bg-gray-100'">
+              {{ p + 1 }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- Modal de qualification -->
+@if (showQualifyForm()) {
+  <app-qualify-form
+    [preselectedAlerts]="selectedAlerts"
+    [agents]="agents()"
+    (submitted)="onQualifySubmitted($event)"
+    (cancelled)="showQualifyForm.set(false)"/>
+}

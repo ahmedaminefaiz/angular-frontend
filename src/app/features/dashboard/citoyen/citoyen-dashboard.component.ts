@@ -101,6 +101,10 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     return this.selectedAlert.user.id === this.currentUserId && this.selectedAlert.status === 'NEW';
   }
 
+  get myAlertsInProgress(): number {
+    return this.myAlertsPage().content.filter(a => a.status === 'NEW' || a.status === 'IN_PROGRESS').length;
+  }
+
   changePage(nextPage: number): void {
     if (nextPage < 0) return;
     if (this.currentTab() === 'my-alerts') {
