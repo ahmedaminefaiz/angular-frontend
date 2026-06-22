@@ -1,4 +1,8 @@
-export type NotificationType = 'ALERT_STATUS_CHANGE';
+export type NotificationType =
+  | 'ALERT_RECEIVED'
+  | 'ALERT_STATUS_CHANGE'
+  | 'PROBLEM_ASSIGNED'
+  | 'PROBLEM_STATUS_CHANGE';
 
 export interface NotificationResponse {
   id: number;

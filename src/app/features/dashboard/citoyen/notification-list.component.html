@@ -20,7 +20,7 @@
 
   <!-- Loading skeleton -->
   @if (loading()) {
-    <ul class="divide-y divide-slate-100 px-0">
+    <ul class="divide-y divide-slate-100">
       @for (_ of [1,2,3,4,5]; track $index) {
         <li class="flex items-start gap-3 px-6 py-4">
           <div class="mt-1 h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-slate-200"></div>
@@ -47,8 +47,10 @@
         <li
           class="group flex items-start gap-3 px-6 py-4 transition-colors"
           [class.bg-teal-50]="!notif.isRead"
-          [class.hover:bg-teal-50/60]="!notif.isRead"
-          [class.hover:bg-slate-50]="notif.isRead">
+          [class.cursor-pointer]="!!notif.referenceId"
+          [class.hover:bg-teal-100]="!notif.isRead && !!notif.referenceId"
+          [class.hover:bg-slate-50]="notif.isRead && !!notif.referenceId"
+          (click)="openDetail(notif)">
 
           <!-- Unread dot -->
           <div class="mt-1.5 h-2 w-2 shrink-0 rounded-full transition-colors"
@@ -67,15 +69,30 @@
             <p class="mt-1 text-xs text-slate-400">
               {{ notif.createdAt | date:'d MMM y, HH:mm' }}
             </p>
+            @if (notif.referenceId) {
+              <p class="mt-1 text-xs font-medium text-teal-600">
+                Cliquez pour voir les détails →
+              </p>
+            }
           </div>
 
-          <!-- Mark-as-read button -->
-          @if (!notif.isRead) {
+          <!-- Loading spinner (when fetching this alert) -->
+          @if (detailLoading()) {
+            <div class="mt-0.5 shrink-0">
+              <svg class="h-4 w-4 animate-spin text-teal-500" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+            </div>
+          }
+
+          <!-- Mark-as-read button (stop propagation so it doesn't open modal) -->
+          @if (!notif.isRead && !detailLoading()) {
             <button
               type="button"
               title="Marquer comme lu"
               class="mt-0.5 shrink-0 rounded p-1 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-teal-100 hover:text-teal-700"
-              (click)="markAsRead(notif)">
+              (click)="$event.stopPropagation(); markAsRead(notif)">
               <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
               </svg>
@@ -110,3 +127,22 @@
   }
 
 </section>
+
+<!-- Alert detail modal (ALERT_RECEIVED / ALERT_STATUS_CHANGE) -->
+@if (selectedAlert()) {
+  <app-alert-detail-modal
+    [alert]="selectedAlert()!"
+    [canManage]="canManageAlert()"
+    (close)="closeDetail()"
+    (removeImage)="onRemoveImage($event)"
+    (removeVideo)="onRemoveVideo($event)"
+  />
+}
+
+<!-- Problem detail modal (PROBLEM_ASSIGNED / PROBLEM_STATUS_CHANGE) -->
+@if (selectedProblem()) {
+  <app-problem-detail-modal
+    [problem]="selectedProblem()!"
+    (close)="closeDetail()"
+  />
+}
