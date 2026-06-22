@@ -16,12 +16,17 @@ export class ProblemsService {
 
   constructor(private readonly http: HttpClient) {}
 
-  getProblems(page = 0, size = 10): Observable<ApiPage<ProblemResponse>> {
+  getProblemById(id: number): Observable<ProblemResponse> {
+    return this.http.get<ProblemResponse>(`${this.base}/${id}`);
+  }
+
+  getProblems(page = 0, size = 9): Observable<ApiPage<ProblemResponse>> {
     const params = new HttpParams().set('page', String(page)).set('size', String(size));
     return this.http.get<ApiPage<ProblemResponse>>(this.base, { params });
   }
 
-  getMyProblems(page = 0, size = 10): Observable<ApiPage<ProblemResponse>> {
+
+  getProblemsRelatedToMyAlerts(page = 0, size = 9): Observable<ApiPage<ProblemResponse>> {
     const params = new HttpParams().set('page', String(page)).set('size', String(size));
     return this.http.get<ApiPage<ProblemResponse>>(`${this.base}/user/my-problems`, { params });
   }
@@ -31,9 +36,6 @@ export class ProblemsService {
     return this.http.get<ApiPage<ProblemResponse>>(`${this.base}/assigned-to-me`, { params });
   }
 
-  getProblemById(id: number): Observable<ProblemResponse> {
-    return this.http.get<ProblemResponse>(`${this.base}/${id}`);
-  }
 
   createProblem(payload: CreateProblemRequest): Observable<ProblemResponse> {
     return this.http.post<ProblemResponse>(this.base, payload);

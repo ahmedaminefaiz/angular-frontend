@@ -21,6 +21,10 @@ export class AlertsService {
     return this.http.get<ApiPage<AlertResponse>>(this.base, { params });
   }
 
+  getAlertById(id: number): Observable<AlertResponse> {
+    return this.http.get<AlertResponse>(`${this.base}/${id}`);
+  }
+
   getMyAlerts(page = 0, size = 30): Observable<ApiPage<AlertResponse>> {
     const params = this.createPageParams(page, size);
     return this.http.get<ApiPage<AlertResponse>>(`${this.base}/user/my-alerts`, { params });
