@@ -14,7 +14,6 @@ export class ProblemDetailModalComponent {
   @Output() readonly close = new EventEmitter<void>();
 
   getAssignedName(): string {
-    if (!this.problem.assignedTo) return 'Non assigné';
-    return `${this.problem.assignedTo.firstName} ${this.problem.assignedTo.lastName}`;
+    return 'Via interventions';
   }
 }

@@ -5,14 +5,12 @@ export type ProblemStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
 export interface CreateProblemRequest {
   title?: string;
   description?: string;
-  assignedToId: number;
   alertIds: number[];
 }
 
 export interface UpdateProblemRequest {
   title?: string;
   description?: string;
-  assignedToId?: number;
   addAlertIds?: number[];
   removeAlertIds?: number[];
 }
@@ -54,7 +52,6 @@ export interface ProblemResponse {
   updatedAt: string;
   resolvedAt?: string;
   createdBy: ProblemUserSummary;
-  assignedTo?: ProblemUserSummary;
   alerts: ProblemAlertSummary[];
   statusHistory: ProblemStatusHistory[];
 }

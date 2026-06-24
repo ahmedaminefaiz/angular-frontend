@@ -41,7 +41,7 @@ export class AgentProblemsComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
     this.currentPage = page;
-    this.problemsService.getAssignedProblems(page).subscribe({
+    this.problemsService.getProblems(page).subscribe({
       next: (data) => {
         this.problemsPage.set(data);
         this.loading.set(false);
