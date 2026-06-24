@@ -1,0 +1,62 @@
+<div class="space-y-6">
+
+  <!-- Back button -->
+  <button
+    class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+    (click)="goBack()">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Retour
+  </button>
+
+  <!-- Loading skeleton -->
+  @if (loading()) {
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
+      <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+      <div class="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+      <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+    </div>
+  }
+
+  <!-- Problem detail -->
+  @if (!loading() && problem()) {
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">{{ problem()!.title || 'Sans titre' }}</h2>
+          <p class="text-sm text-gray-500 mt-1">Créé le {{ problem()!.createdAt | date:'dd/MM/yyyy à HH:mm' }}</p>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-medium {{ getStatusClass(problem()!.status) }}">
+          {{ getStatusLabel(problem()!.status) }}
+        </span>
+      </div>
+
+      @if (problem()!.description) {
+        <p class="text-gray-600 text-sm mb-4">{{ problem()!.description }}</p>
+      }
+
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <span class="text-gray-500">Créé par :</span>
+          <span class="ml-1 text-gray-800 font-medium">{{ problem()!.createdBy.firstName }} {{ problem()!.createdBy.lastName }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interventions section -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
+      <h3 class="font-semibold text-gray-800 mb-6">Interventions</h3>
+      <app-intervention-list [problemId]="problem()!.id" />
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (!loading() && !problem()) {
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center">
+      <p class="text-gray-600 font-medium mb-1">Problème introuvable</p>
+      <p class="text-sm text-gray-400">Ce dossier n'existe pas ou vous n'y avez pas accès.</p>
+    </div>
+  }
+
+</div>

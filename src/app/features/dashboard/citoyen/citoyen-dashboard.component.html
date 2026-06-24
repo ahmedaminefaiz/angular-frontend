@@ -1,0 +1,93 @@
+<div class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-100 bg-gradient-to-r from-teal-50 to-white p-5 shadow-sm">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-900">Espace citoyen</h2>
+      <p class="text-sm text-slate-600">Gestion des signalements et suivi d'intervention.</p>
+    </div>
+    <button
+      class="inline-flex items-center rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
+      (click)="openCreateForm()"
+    >
+      Signale un incident urbain
+    </button>
+  </div>
+
+  <!-- Stats summary -->
+  <div class="grid grid-cols-3 gap-3">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 text-center">
+      <p class="text-2xl font-bold text-teal-600">{{ myAlertsPage().totalElements }}</p>
+      <p class="text-xs text-slate-500 mt-1">Mes signalements</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 text-center">
+      <p class="text-2xl font-bold text-yellow-500">{{ myAlertsInProgress }}</p>
+      <p class="text-xs text-slate-500 mt-1">En cours</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 text-center">
+      <p class="text-2xl font-bold text-emerald-500">{{ problemsPage().totalElements }}</p>
+      <p class="text-xs text-slate-500 mt-1">Problèmes traités</p>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+      {{ successMessage() }}
+    </div>
+  }
+
+  @if (pageErrorMessage() && !hasOpenModal) {
+    <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+      {{ pageErrorMessage() }}
+    </div>
+  }
+
+  @if (currentTab() === 'alerts' || currentTab() === 'my-alerts') {
+    <app-alert-table
+      [page]="activePage()"
+      [loading]="isActiveTableLoading()"
+      [currentUserId]="currentUserId"
+      [tab]="activeAlertTab()"
+      (view)="openAlertDetails($event)"
+      (edit)="openEditForm($event)"
+      (remove)="deleteAlert($event)"
+      (addMedia)="openMediaForm($event)"
+      (pageChange)="changePage($event)"
+    />
+  }
+
+  @if (currentTab() === 'approved-alerts') {
+    <app-approved-alerts />
+  }
+
+  @if (currentTab() === 'notifications') {
+    <app-notification-list />
+  }
+</div>
+
+@if (showAlertModal && selectedAlert) {
+  <app-alert-detail-modal
+    [alert]="selectedAlert"
+    [canManage]="canManageSelected"
+    (close)="closeAllModals()"
+    (removeImage)="onRemoveImage($event)"
+    (removeVideo)="onRemoveVideo($event)"
+  />
+}
+
+@if (showAlertFormModal) {
+  <app-alert-form
+    [editing]="editingAlert"
+    [categories]="categoryList()"
+    [serverError]="alertFormError()"
+    (submitted)="onAlertFormSubmitted($event)"
+    (cancelled)="closeAllModals()"
+  />
+}
+
+@if (showMediaModal && selectedAlert) {
+  <app-media-form
+    [alertId]="selectedAlert.id"
+    [serverError]="mediaFormError()"
+    (submitted)="onMediaFormSubmitted($event)"
+    (cancelled)="closeAllModals()"
+  />
+}

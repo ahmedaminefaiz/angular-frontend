@@ -1,0 +1,278 @@
+<div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="cancelled.emit()">
+  <div class="mx-auto mt-6 max-h-[90vh] max-w-2xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
+    <div class="mb-5 flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wide text-teal-600">Signalement citoyen</p>
+        <h3 class="mt-1 text-xl font-bold text-slate-900">
+          {{ editing ? 'Modifier l\'incident' : 'Signaler un incident urbain' }}
+        </h3>
+        <p class="mt-1 text-sm text-slate-500">Décrivez le problème et indiquez sa localisation au Maroc.</p>
+      </div>
+      <button
+        type="button"
+        class="shrink-0 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+        (click)="cancelled.emit()"
+      >
+        X
+      </button>
+    </div>
+    <form [formGroup]="form" class="grid gap-3 md:grid-cols-2" (ngSubmit)="onSubmit()">
+      <div class="md:col-span-2">
+        <label class="text-sm font-medium text-slate-700">Titre</label>
+        <input
+          class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+          [class.border-slate-300]="!fieldInvalid('title')"
+          [class.border-rose-400]="fieldInvalid('title')"
+          formControlName="title"
+        />
+        @if (fieldInvalid('title')) {
+          <p class="mt-1 text-xs text-rose-600">{{ fieldError('title') }}</p>
+        }
+      </div>
+      <div class="md:col-span-2">
+        <label class="text-sm font-medium text-slate-700">Description</label>
+        <textarea
+          class="mt-1 min-h-24 w-full rounded-lg border px-3 py-2 text-sm"
+          [class.border-slate-300]="!fieldInvalid('description')"
+          [class.border-rose-400]="fieldInvalid('description')"
+          formControlName="description"
+        ></textarea>
+        @if (fieldInvalid('description')) {
+          <p class="mt-1 text-xs text-rose-600">{{ fieldError('description') }}</p>
+        }
+      </div>
+
+      <section class="md:col-span-2 rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-4">
+        <p class="text-sm font-semibold text-slate-800">Localisation</p>
+        <p class="mt-0.5 text-xs text-slate-500">Obligatoire — sélection sur la carte ou position GPS actuelle (Maroc).</p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="rounded-lg border border-teal-200 bg-white px-3 py-2 text-sm font-medium text-teal-800 shadow-sm hover:bg-teal-50"
+            (click)="openLocationMap()"
+          >
+            Ouvrir la carte
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            [disabled]="locating"
+            (click)="useCurrentLocation()"
+          >
+            {{ locating ? 'Localisation…' : 'Ma position actuelle' }}
+          </button>
+        </div>
+        <div class="mt-3 grid gap-3 md:grid-cols-2">
+          <div>
+            <label class="text-sm text-slate-600">Latitude</label>
+            <input
+              class="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700"
+              readonly
+              [value]="formatCoordinate(form.get('latitude')?.value)"
+            />
+          </div>
+          <div>
+            <label class="text-sm text-slate-600">Longitude</label>
+            <input
+              class="mt-1 w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700"
+              readonly
+              [value]="formatCoordinate(form.get('longitude')?.value)"
+            />
+          </div>
+        </div>
+        @if (fieldInvalid('latitude') || fieldInvalid('longitude') || locationFormError) {
+          <p class="mt-2 text-xs text-rose-600">{{ locationFormError || fieldError('latitude') || fieldError('longitude') }}</p>
+        }
+        <div class="mt-3">
+          <label class="text-sm font-medium text-slate-700">Adresse</label>
+          <input
+            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            formControlName="address"
+            placeholder="Remplie automatiquement depuis la carte (modifiable)"
+          />
+        </div>
+      </section>
+
+      <div>
+        <label class="text-sm font-medium text-slate-700">Catégorie</label>
+        <select
+          class="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+          [class.border-slate-300]="!fieldInvalid('categoryId')"
+          [class.border-rose-400]="fieldInvalid('categoryId')"
+          formControlName="categoryId"
+        >
+          <option [ngValue]="null" disabled>Sélectionnez une catégorie</option>
+          @for (cat of categories; track cat.id) {
+            <option [ngValue]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+        @if (fieldInvalid('categoryId')) {
+          <p class="mt-1 text-xs text-rose-600">{{ fieldError('categoryId') }}</p>
+        }
+        @if (!categories.length) {
+          <p class="mt-1 text-xs text-amber-600">Aucune catégorie chargée. Vérifiez l'API /v1/problem-types.</p>
+        }
+      </div>
+      <div>
+        <label class="text-sm font-medium text-slate-700">Priorité</label>
+        <select class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" formControlName="priority">
+          <option value="LOW">Faible</option>
+          <option value="MEDIUM">Moyenne</option>
+          <option value="HIGH">Élevée</option>
+          <option value="CRITICAL">Critique</option>
+        </select>
+      </div>
+      <!-- Médias existants (mode édition uniquement) -->
+      @if (editing && (localImages.length > 0 || localVideos.length > 0)) {
+        <section class="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p class="mb-3 text-sm font-semibold text-slate-700">Médias attachés</p>
+          <p class="mb-3 text-xs text-slate-400">Cliquez sur ✕ pour sélectionner, puis confirmez. Cliquez à nouveau pour désélectionner.</p>
+
+          @if (localImages.length > 0) {
+            <p class="mb-2 text-xs font-medium text-slate-500">Photos</p>
+            <div class="mb-3 flex flex-wrap gap-3">
+              @for (img of localImages; track img) {
+                <div class="relative">
+                  <!-- Image with dimming based on state -->
+                  <img
+                    [src]="img"
+                    alt="photo"
+                    class="h-24 w-24 rounded-lg border object-cover transition-all duration-200"
+                    [class.border-slate-200]="!imageState.get(img)"
+                    [class.border-rose-400]="imageState.get(img) === 'selected'"
+                    [class.border-slate-300]="imageState.get(img) === 'deleting'"
+                    [class.opacity-40]="imageState.get(img) !== undefined"
+                    (error)="$any($event.target).src = imgPlaceholder"
+                  />
+
+                  <!-- Spinner overlay — deleting -->
+                  @if (imageState.get(img) === 'deleting') {
+                    <div class="absolute inset-0 flex items-center justify-center rounded-lg bg-slate-900/20">
+                      <svg class="h-6 w-6 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                    </div>
+                  }
+
+                  <!-- Selected state — undo + confirm -->
+                  @if (imageState.get(img) === 'selected') {
+                    <div class="absolute inset-0 flex items-center justify-center gap-1.5 rounded-lg">
+                      <button type="button" title="Annuler" (click)="toggleImageSelect(img)"
+                        class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700/80 text-white hover:bg-slate-800 transition-colors">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/>
+                        </svg>
+                      </button>
+                      <button type="button" title="Confirmer la suppression" (click)="confirmDeleteImage(img)"
+                        class="flex h-7 w-7 items-center justify-center rounded-full bg-rose-600 text-white hover:bg-rose-700 transition-colors">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                      </button>
+                    </div>
+                  }
+
+                  <!-- Normal state — select button on hover -->
+                  @if (!imageState.get(img)) {
+                    <button
+                      type="button"
+                      title="Sélectionner pour supprimer"
+                      (click)="toggleImageSelect(img)"
+                      class="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-rose-600 text-white opacity-0 shadow transition-opacity hover:bg-rose-700 hover:opacity-100 focus:opacity-100">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (localVideos.length > 0) {
+            <p class="mb-2 text-xs font-medium text-slate-500">Vidéos</p>
+            <div class="flex flex-wrap gap-3">
+              @for (vid of localVideos; track vid) {
+                <div class="relative">
+                  <video
+                    [src]="vid"
+                    class="h-24 w-36 rounded-lg border object-cover transition-all duration-200"
+                    [class.border-slate-200]="!videoState.get(vid)"
+                    [class.border-rose-400]="videoState.get(vid) === 'selected'"
+                    [class.border-slate-300]="videoState.get(vid) === 'deleting'"
+                    [class.opacity-40]="videoState.get(vid) !== undefined"
+                    controls
+                  ></video>
+
+                  @if (videoState.get(vid) === 'deleting') {
+                    <div class="absolute inset-0 flex items-center justify-center rounded-lg bg-slate-900/20">
+                      <svg class="h-6 w-6 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                    </div>
+                  }
+
+                  @if (videoState.get(vid) === 'selected') {
+                    <div class="absolute inset-0 flex items-center justify-center gap-1.5 rounded-lg">
+                      <button type="button" title="Annuler" (click)="toggleVideoSelect(vid)"
+                        class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-700/80 text-white hover:bg-slate-800 transition-colors">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/>
+                        </svg>
+                      </button>
+                      <button type="button" title="Confirmer la suppression" (click)="confirmDeleteVideo(vid)"
+                        class="flex h-7 w-7 items-center justify-center rounded-full bg-rose-600 text-white hover:bg-rose-700 transition-colors">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                      </button>
+                    </div>
+                  }
+
+                  @if (!videoState.get(vid)) {
+                    <button
+                      type="button"
+                      title="Sélectionner pour supprimer"
+                      (click)="toggleVideoSelect(vid)"
+                      class="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-rose-600 text-white opacity-0 shadow transition-opacity hover:bg-rose-700 hover:opacity-100 focus:opacity-100">
+                      <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (mediaError) {
+            <p class="mt-2 text-xs text-rose-600">{{ mediaError }}</p>
+          }
+        </section>
+      }
+
+      <div class="md:col-span-2 flex flex-col items-end gap-2 pt-2">
+        @if (serverError) {
+          <p class="w-full text-right text-xs text-rose-600">{{ serverError }}</p>
+        }
+        <div class="flex items-center gap-2">
+          <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" (click)="cancelled.emit()">Annuler</button>
+          <button type="submit" class="rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700">
+            {{ editing ? 'Mettre à jour' : 'Signaler' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+@if (showLocationMap) {
+  <app-location-map-picker
+    [initialLat]="mapInitialLat"
+    [initialLng]="mapInitialLng"
+    (confirmed)="onLocationPicked($event)"
+    (cancel)="showLocationMap = false"
+  />
+}

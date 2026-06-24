@@ -1,0 +1,112 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+  <div class="w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-y-auto max-h-[90vh]">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <h2 class="text-lg font-semibold text-gray-900">Qualifier les signalements</h2>
+      <button (click)="cancelled.emit()" class="text-gray-400 hover:text-gray-600">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mode toggle -->
+    <div class="flex border-b border-gray-200">
+      <button
+        (click)="setMode('new')"
+        [class]="mode() === 'new'
+          ? 'flex-1 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600'
+          : 'flex-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-700'">
+        Nouveau problème
+      </button>
+      <button
+        (click)="setMode('existing')"
+        [class]="mode() === 'existing'
+          ? 'flex-1 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600'
+          : 'flex-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-700'">
+        Lier à un problème existant
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4 px-6 py-5">
+
+      <!-- Signalements sélectionnés -->
+      <div>
+        <p class="mb-1 text-sm font-medium text-gray-700">
+          Signalements sélectionnés ({{ selectedAlerts().length }})
+        </p>
+        @if (selectedAlerts().length === 0) {
+          <p class="text-sm text-red-500 italic">Aucun signalement sélectionné.</p>
+        } @else {
+          <ul class="max-h-32 overflow-y-auto space-y-1 rounded-lg border border-gray-200 bg-gray-50 p-2">
+            @for (a of selectedAlerts(); track a.id) {
+              <li class="flex items-center justify-between text-sm">
+                <span class="truncate text-gray-700">#{{ a.id }} — {{ a.title }}</span>
+                <button type="button" (click)="removeAlert(a)" class="ml-2 text-red-400 hover:text-red-600 shrink-0">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      @if (mode() === 'new') {
+        <!-- Titre -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Titre du problème (optionnel)</label>
+          <input formControlName="title" type="text" placeholder="Ex: Nids-de-poule rue Hassan II"
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Description (optionnel)</label>
+          <textarea formControlName="description" rows="3" placeholder="Décrivez le problème regroupé…"
+            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+        </div>
+
+      }
+
+      @if (mode() === 'existing') {
+        <!-- Problème existant -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Problème existant <span class="text-red-500">*</span></label>
+          @if (loadingProblems()) {
+            <p class="mt-1 text-sm text-gray-400">Chargement des problèmes…</p>
+          } @else if (existingProblems().length === 0) {
+            <p class="mt-1 text-sm text-amber-600 italic">Aucun problème actif trouvé.</p>
+          } @else {
+            <select formControlName="existingProblemId"
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option [ngValue]="null" disabled>Sélectionnez un problème</option>
+              @for (p of existingProblems(); track p.id) {
+                <option [ngValue]="p.id">#{{ p.id }} — {{ p.title || 'Sans titre' }} ({{ p.status }})</option>
+              }
+            </select>
+          }
+        </div>
+      }
+
+      <!-- Erreur -->
+      @if (error()) {
+        <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{{ error() }}</p>
+      }
+
+      <!-- Boutons -->
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="cancelled.emit()"
+          class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          Annuler
+        </button>
+        <button type="submit" [disabled]="submitting()"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors">
+          {{ submitting() ? 'Enregistrement…' : (mode() === 'new' ? 'Créer le problème' : 'Lier les signalements') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

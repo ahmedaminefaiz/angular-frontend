@@ -1,0 +1,176 @@
+<div class="space-y-6">
+
+  <!-- Welcome banner -->
+  <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white">
+    <h2 class="text-2xl font-bold mb-1">Espace Super-Agent</h2>
+    <p class="text-purple-100 text-sm">Gérez vos problèmes signalés et supervisez vos agents.</p>
+  </div>
+
+  <!-- Problem stats -->
+  @if (loadingProblems()) {
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      @for (_ of [1,2,3,4]; track $index) {
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center animate-pulse">
+          <div class="h-8 w-12 bg-gray-200 rounded mx-auto mb-2"></div>
+          <div class="h-3 w-20 bg-gray-100 rounded mx-auto"></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
+        <p class="text-3xl font-bold text-gray-800">{{ problemStats().total }}</p>
+        <p class="text-xs text-gray-500 mt-1">Problèmes créés</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
+        <p class="text-3xl font-bold text-blue-500">{{ problemStats().new }}</p>
+        <p class="text-xs text-gray-500 mt-1">Nouveaux</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
+        <p class="text-3xl font-bold text-yellow-500">{{ problemStats().inProgress }}</p>
+        <p class="text-xs text-gray-500 mt-1">En cours</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
+        <p class="text-3xl font-bold text-green-500">{{ problemStats().resolved }}</p>
+        <p class="text-xs text-gray-500 mt-1">Résolus</p>
+      </div>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Pending agents card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <p class="text-sm text-gray-500 mb-2">Agents en attente d'approbation</p>
+          @if (loadingPending()) {
+            <div class="h-10 w-16 bg-gray-100 rounded-lg animate-pulse"></div>
+          } @else {
+            <p class="text-4xl font-bold"
+              [class.text-yellow-500]="pendingCount() > 0"
+              [class.text-gray-800]="pendingCount() === 0">
+              {{ pendingCount() }}
+            </p>
+          }
+        </div>
+        <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center flex-shrink-0">
+          <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </div>
+      </div>
+      @if (!loadingPending()) {
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          @if (pendingCount() > 0) {
+            <a routerLink="/dashboard/super-agent/pending-agents"
+               class="inline-flex items-center gap-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium text-sm px-4 py-2.5 rounded-lg transition-colors">
+              Voir les agents en attente
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          } @else {
+            <p class="text-sm text-gray-400">Aucun agent en attente. Tout est à jour.</p>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Recent problems -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-800">Mes problèmes récents</h3>
+        <a routerLink="/dashboard/super-agent/problems"
+           class="text-sm text-purple-600 hover:text-purple-700 font-medium">
+          Voir tous →
+        </a>
+      </div>
+      @if (loadingProblems()) {
+        <div class="space-y-3">
+          @for (_ of [1,2,3]; track $index) {
+            <div class="h-12 bg-gray-100 rounded-lg animate-pulse"></div>
+          }
+        </div>
+      } @else if (recentProblems().length === 0) {
+        <p class="text-sm text-gray-400 py-4 text-center">Aucun problème créé pour l'instant.</p>
+      } @else {
+        <div class="divide-y divide-gray-50">
+          @for (p of recentProblems(); track p.id) {
+            <div class="py-3 flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-800 truncate">{{ p.title }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ p.createdAt | date:'dd/MM/yyyy' }}</p>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
+                [class]="statusClass(p.status)">
+                {{ statusLabel(p.status) }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div>
+
+  <!-- Historique des approbations -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
+    <h3 class="font-semibold text-gray-800 mb-4">Historique des approbations</h3>
+    @if (loadingAgents()) {
+      <div class="space-y-3">
+        @for (_ of [1,2,3]; track $index) {
+          <div class="h-12 bg-gray-100 rounded-lg animate-pulse"></div>
+        }
+      </div>
+    } @else if (myAgents().length === 0) {
+      <div class="flex flex-col items-center justify-center py-8 text-center">
+        <p class="text-sm text-gray-400">Aucun agent approuvé pour l'instant.</p>
+        <a routerLink="/dashboard/super-agent/pending-agents"
+           class="mt-3 text-sm text-purple-600 hover:underline">
+          Voir les agents en attente
+        </a>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="text-left text-xs text-gray-400 border-b border-gray-100">
+              <th class="pb-3 font-medium pr-4">Nom</th>
+              <th class="pb-3 font-medium pr-4">Téléphone</th>
+              <th class="pb-3 font-medium pr-4">Ville</th>
+              <th class="pb-3 font-medium">Statut</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            @for (agent of myAgents(); track agent.id) {
+              <tr>
+                <td class="py-3 pr-4 font-medium text-gray-800">{{ agent.prenom }} {{ agent.nom }}</td>
+                <td class="py-3 pr-4 text-gray-500">{{ agent.phone }}</td>
+                <td class="py-3 pr-4 text-gray-500">{{ agent.ville || '—' }}</td>
+                <td class="py-3">
+                  <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
+                    [class.bg-green-100]="agent.status === 'ACTIVE'"
+                    [class.text-green-700]="agent.status === 'ACTIVE'"
+                    [class.bg-red-100]="agent.status === 'REJECTED'"
+                    [class.text-red-700]="agent.status === 'REJECTED'"
+                    [class.bg-gray-100]="agent.status !== 'ACTIVE' && agent.status !== 'REJECTED'"
+                    [class.text-gray-600]="agent.status !== 'ACTIVE' && agent.status !== 'REJECTED'">
+                    <span class="w-1.5 h-1.5 rounded-full"
+                      [class.bg-green-500]="agent.status === 'ACTIVE'"
+                      [class.bg-red-500]="agent.status === 'REJECTED'"
+                      [class.bg-gray-400]="agent.status !== 'ACTIVE' && agent.status !== 'REJECTED'">
+                    </span>
+                    {{ agent.status === 'ACTIVE' ? 'Actif' : agent.status === 'REJECTED' ? 'Rejeté' : agent.status }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+</div>

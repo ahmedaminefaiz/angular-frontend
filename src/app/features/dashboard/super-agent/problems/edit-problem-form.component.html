@@ -1,0 +1,78 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+  <div class="w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-y-auto max-h-[90vh]">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <h2 class="text-lg font-semibold text-gray-900">Modifier le problème #{{ problem.id }}</h2>
+      <button (click)="cancelled.emit()" class="text-gray-400 hover:text-gray-600">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4 px-6 py-5">
+
+      <!-- Titre -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Titre</label>
+        <input formControlName="title" type="text"
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Description</label>
+        <textarea formControlName="description" rows="3"
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+      </div>
+
+      <!-- Signalements liés -->
+      <div>
+        <p class="text-sm font-medium text-gray-700 mb-1">Signalements liés ({{ currentAlerts.length }})</p>
+        @if (currentAlerts.length === 0) {
+          <p class="text-sm text-amber-600 italic">Aucun signalement lié. Le problème sera vide.</p>
+        } @else {
+          <ul class="max-h-32 overflow-y-auto space-y-1 rounded-lg border border-gray-200 bg-gray-50 p-2">
+            @for (a of currentAlerts; track a.id) {
+              <li class="flex items-center justify-between text-sm">
+                <span class="truncate text-gray-700">#{{ a.id }} — {{ a.title }}</span>
+                <button type="button" (click)="removeAlert(a.id)"
+                  class="ml-2 text-red-400 hover:text-red-600 shrink-0">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <!-- Ajouter des signalements -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Ajouter des signalements (IDs séparés par virgule)</label>
+        <input [(ngModel)]="addAlertIdInput" [ngModelOptions]="{standalone: true}" type="text"
+          placeholder="Ex: 12, 45, 78"
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      </div>
+
+      <!-- Erreur -->
+      @if (error()) {
+        <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{{ error() }}</p>
+      }
+
+      <!-- Boutons -->
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="cancelled.emit()"
+          class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          Annuler
+        </button>
+        <button type="submit" [disabled]="submitting()"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors">
+          {{ submitting() ? 'Enregistrement…' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
