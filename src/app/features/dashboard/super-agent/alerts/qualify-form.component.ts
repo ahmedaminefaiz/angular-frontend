@@ -40,7 +40,6 @@ export class QualifyFormComponent implements OnInit {
     this.form = this.fb.group({
       title: [''],
       description: [''],
-      assignedToId: [null, Validators.required],
       existingProblemId: [null]
     });
     this.loadExistingProblems();
@@ -63,15 +62,10 @@ export class QualifyFormComponent implements OnInit {
     }
 
     if (this.mode() === 'new') {
-      if (!this.form.get('assignedToId')?.value) {
-        this.error.set("Veuillez sélectionner un agent à assigner.");
-        return;
-      }
       this.submitting.set(true);
       this.problemsService.createProblem({
         title: this.form.get('title')?.value || undefined,
         description: this.form.get('description')?.value || undefined,
-        assignedToId: this.form.get('assignedToId')?.value,
         alertIds: this.selectedAlerts().map(a => a.id)
       }).subscribe({
         next: (problem) => {

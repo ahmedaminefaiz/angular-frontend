@@ -105,7 +105,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
       case 'AGENT':
         return [
           { label: 'Tableau de bord', route: '/dashboard/agent' },
-          { label: 'Problèmes assignés', route: '/dashboard/agent/problems' },
+          { label: 'Mes interventions', route: '/dashboard/agent/interventions' },
           { label: 'Notifications', route: '/dashboard/agent/notifications' }
         ];
       case 'SUPER_AGENT':

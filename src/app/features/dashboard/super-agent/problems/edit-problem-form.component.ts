@@ -32,8 +32,7 @@ export class EditProblemFormComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.fb.group({
       title: [this.problem.title ?? ''],
-      description: [this.problem.description ?? ''],
-      assignedToId: [this.problem.assignedTo?.id ?? null]
+      description: [this.problem.description ?? '']
     });
   }
 
@@ -56,7 +55,6 @@ export class EditProblemFormComponent implements OnInit {
     this.problemsService.updateProblem(this.problem.id, {
       title: this.form.get('title')?.value || undefined,
       description: this.form.get('description')?.value || undefined,
-      assignedToId: this.form.get('assignedToId')?.value || undefined,
       addAlertIds: addIds.length > 0 ? addIds : undefined,
       removeAlertIds: this.removedAlertIds().size > 0 ? [...this.removedAlertIds()] : undefined
     }).subscribe({

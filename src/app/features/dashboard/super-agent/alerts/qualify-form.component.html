@@ -69,20 +69,6 @@
             class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
         </div>
 
-        <!-- Agent assigné -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Agent assigné <span class="text-red-500">*</span></label>
-          <select formControlName="assignedToId"
-            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option [ngValue]="null" disabled>Sélectionnez un agent</option>
-            @for (agent of agents; track agent.id) {
-              <option [ngValue]="agent.id">{{ agent.prenom }} {{ agent.nom }} — {{ agent.ville }}</option>
-            }
-          </select>
-          @if (agents.length === 0) {
-            <p class="mt-1 text-xs text-amber-600">Aucun agent actif disponible.</p>
-          }
-        </div>
       }
 
       @if (mode() === 'existing') {

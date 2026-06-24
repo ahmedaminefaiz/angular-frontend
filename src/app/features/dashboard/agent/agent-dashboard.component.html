@@ -3,7 +3,7 @@
   <!-- Welcome banner -->
   <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-6 text-white">
     <h2 class="text-2xl font-bold mb-1">Espace Agent</h2>
-    <p class="text-indigo-100 text-sm">Consultez et gérez les dossiers qui vous sont assignés.</p>
+    <p class="text-indigo-100 text-sm">Consultez et gérez vos interventions assignées.</p>
   </div>
 
   <!-- Stats -->
@@ -20,30 +20,30 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
       <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
         <p class="text-3xl font-bold text-gray-800">{{ totalCount() }}</p>
-        <p class="text-xs text-gray-500 mt-1">Dossiers assignés</p>
+        <p class="text-xs text-gray-500 mt-1">Total interventions</p>
       </div>
       <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-blue-500">{{ newCount() }}</p>
-        <p class="text-xs text-gray-500 mt-1">Nouveaux</p>
+        <p class="text-3xl font-bold text-blue-500">{{ affecteeCount() }}</p>
+        <p class="text-xs text-gray-500 mt-1">Affectées</p>
       </div>
       <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-yellow-500">{{ inProgressCount() }}</p>
+        <p class="text-3xl font-bold text-yellow-500">{{ enCoursCount() }}</p>
         <p class="text-xs text-gray-500 mt-1">En cours</p>
       </div>
       <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-green-500">{{ resolvedCount() }}</p>
-        <p class="text-xs text-gray-500 mt-1">Résolus</p>
+        <p class="text-3xl font-bold text-green-500">{{ resolueCount() }}</p>
+        <p class="text-xs text-gray-500 mt-1">Résolues</p>
       </div>
     </div>
   }
 
-  <!-- Recent problems preview -->
+  <!-- Recent interventions -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
     <div class="flex items-center justify-between mb-5">
-      <h3 class="font-semibold text-gray-800">Dossiers récents</h3>
-      <a routerLink="/dashboard/agent/problems"
+      <h3 class="font-semibold text-gray-800">Interventions récentes</h3>
+      <a routerLink="/dashboard/agent/interventions"
          class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-        Voir tous →
+        Voir toutes →
       </a>
     </div>
 
@@ -53,36 +53,36 @@
           <div class="h-14 bg-gray-100 rounded-lg animate-pulse"></div>
         }
       </div>
-    } @else if (recentProblems().length === 0) {
+    } @else if (recentInterventions().length === 0) {
       <div class="flex flex-col items-center justify-center py-10 text-center">
         <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-3">
           <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
           </svg>
         </div>
-        <p class="text-gray-600 font-medium mb-1">Aucun dossier assigné</p>
-        <p class="text-sm text-gray-400">Les dossiers vous seront assignés par votre superviseur.</p>
+        <p class="text-gray-600 font-medium mb-1">Aucune intervention assignée</p>
+        <p class="text-sm text-gray-400">Les interventions vous seront assignées par votre superviseur.</p>
       </div>
     } @else {
       <div class="divide-y divide-gray-50">
-        @for (p of recentProblems(); track p.id) {
+        @for (i of recentInterventions(); track i.id) {
           <div class="py-3 flex items-center justify-between gap-3">
             <div class="min-w-0">
-              <p class="text-sm font-medium text-gray-800 truncate">{{ p.title }}</p>
-              <p class="text-xs text-gray-400 mt-0.5">{{ p.createdAt | date:'dd/MM/yyyy' }}</p>
+              <p class="text-sm font-medium text-gray-800 truncate">{{ i.problemTitle || 'Sans titre' }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">{{ actionTypeLabels[i.actionType] }} · {{ i.interventionDate | date:'dd/MM/yyyy' }}</p>
             </div>
             <span class="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
-              [class]="statusClass(p.status)">
-              {{ statusLabel(p.status) }}
+              [class]="statusClass(i.status)">
+              {{ statusLabels[i.status] }}
             </span>
           </div>
         }
       </div>
       <div class="mt-4 pt-3 border-t border-gray-50">
-        <a routerLink="/dashboard/agent/problems"
+        <a routerLink="/dashboard/agent/interventions"
            class="inline-flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium text-sm px-4 py-2.5 rounded-lg transition-colors">
-          Gérer tous les dossiers
+          Gérer mes interventions
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
