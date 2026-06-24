@@ -12,8 +12,4 @@ import { ProblemResponse } from '../../../models/problem.models';
 export class ProblemDetailModalComponent {
   @Input({ required: true }) problem!: ProblemResponse;
   @Output() readonly close = new EventEmitter<void>();
-
-  getAssignedName(): string {
-    return 'Via interventions';
-  }
 }

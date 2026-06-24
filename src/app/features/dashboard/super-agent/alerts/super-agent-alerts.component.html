@@ -149,7 +149,6 @@
 @if (showQualifyForm()) {
   <app-qualify-form
     [preselectedAlerts]="selectedAlerts"
-    [agents]="agents()"
     (submitted)="onQualifySubmitted($event)"
     (cancelled)="showQualifyForm.set(false)"/>
 }

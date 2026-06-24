@@ -2,15 +2,23 @@ import { AlertStatus } from './alert.models';
 
 export type ProblemStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
 
+export interface CriticalityResponse {
+  id: number;
+  name: string;
+  delayHours: number;
+}
+
 export interface CreateProblemRequest {
   title?: string;
   description?: string;
+  criticalityId: number;
   alertIds: number[];
 }
 
 export interface UpdateProblemRequest {
   title?: string;
   description?: string;
+  criticalityId?: number;
   addAlertIds?: number[];
   removeAlertIds?: number[];
 }
@@ -51,6 +59,7 @@ export interface ProblemResponse {
   createdAt: string;
   updatedAt: string;
   resolvedAt?: string;
+  criticality: CriticalityResponse | null;
   createdBy: ProblemUserSummary;
   alerts: ProblemAlertSummary[];
   statusHistory: ProblemStatusHistory[];

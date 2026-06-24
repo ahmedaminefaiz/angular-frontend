@@ -235,10 +235,6 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
-  getProblemAssignedName(problem: ProblemResponse): string {
-    return 'Via interventions';
-  }
-
   private loadProblemTypes(): void {
     this.subscriptions.add(
       this.problemTypesService.getAll().subscribe((types) => {
