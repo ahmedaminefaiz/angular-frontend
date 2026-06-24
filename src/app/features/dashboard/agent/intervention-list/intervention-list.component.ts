@@ -66,7 +66,8 @@ export class InterventionListComponent implements OnInit, OnDestroy {
 
   readonly form = this.fb.group({
     rapport: ['', [Validators.required, Validators.maxLength(5000)]],
-    status: ['' as InterventionStatus | '', Validators.required]
+    status: ['' as InterventionStatus | '', Validators.required],
+    statusDate: ['', Validators.required]
   });
 
   ngOnInit(): void {
@@ -134,7 +135,7 @@ export class InterventionListComponent implements OnInit, OnDestroy {
     this.errorMessage.set('');
     this.photoError.set('');
     this.updatePhotos.set([]);
-    this.form.reset({ rapport: '', status: '' });
+    this.form.reset({ rapport: '', status: '', statusDate: '' });
     this.showEditModal.set(true);
   }
 
@@ -168,6 +169,7 @@ export class InterventionListComponent implements OnInit, OnDestroy {
     const sub = this.interventionService.createUpdate(id, {
       rapport: values.rapport!,
       status: values.status as InterventionStatus,
+      statusDate: values.statusDate!,
       photos: this.updatePhotos().length > 0 ? this.updatePhotos() : undefined
     }).subscribe({
       next: (updated) => {
