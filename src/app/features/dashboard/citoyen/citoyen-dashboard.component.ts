@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -24,7 +23,6 @@ type CitizenTab = 'alerts' | 'my-alerts' | 'approved-alerts' | 'notifications';
   selector: 'app-citoyen-dashboard',
   standalone: true,
   imports: [
-    DatePipe,
     AlertTableComponent,
     AlertDetailModalComponent,
     AlertFormComponent,
@@ -72,6 +70,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.currentUserId = this.tokenService.getUserId();
     this.loadProblemTypes();
+    this.fetchMyAlerts(0, 30, false);
     this.listenRouteTab();
   }
 
@@ -103,6 +102,10 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   get myAlertsInProgress(): number {
     return this.myAlertsPage().content.filter(a => a.status === 'NEW' || a.status === 'IN_PROGRESS').length;
+  }
+
+  get myAlertsResolved(): number {
+    return this.myAlertsPage().content.filter(a => a.status === 'RESOLVED').length;
   }
 
   changePage(nextPage: number): void {
