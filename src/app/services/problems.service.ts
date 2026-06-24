@@ -43,6 +43,9 @@ export class ProblemsService {
     return this.http.get<ApiPage<ProblemResponse>>(`${this.base}/assigned-to-me`, { params });
   }
 
+  getProblemById(id: number): Observable<ProblemResponse> {
+    return this.http.get<ProblemResponse>(`${this.base}/${id}`);
+  }
 
   createProblem(payload: CreateProblemRequest): Observable<ProblemResponse> {
     return this.http.post<ProblemResponse>(this.base, payload);

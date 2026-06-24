@@ -40,6 +40,13 @@ export const routes: Routes = [
               )
           },
           {
+            path: 'interventions',
+            loadComponent: () =>
+              import('./features/dashboard/agent/intervention-list/intervention-list.component').then(
+                m => m.InterventionListComponent
+              )
+          },
+          {
             path: 'problems',
             loadComponent: () =>
               import('./features/dashboard/agent/problems/agent-problems.component').then(

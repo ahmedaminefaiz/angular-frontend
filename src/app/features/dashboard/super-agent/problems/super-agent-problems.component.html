@@ -58,9 +58,6 @@
               </div>
               <div class="mt-1 flex flex-wrap gap-3 text-xs text-gray-500">
                 <span>{{ problem.alerts.length }} signalement(s)</span>
-                @if (problem.assignedTo) {
-                  <span>Agent : {{ problem.assignedTo.firstName }} {{ problem.assignedTo.lastName }}</span>
-                }
                 <span>Créé le {{ problem.createdAt | slice:0:10 }}</span>
               </div>
             </div>
@@ -77,6 +74,14 @@
                     <option [value]="s.value">→ {{ s.label }}</option>
                   }
                 </select>
+              }
+
+              <!-- Nouvelle intervention -->
+              @if (problem.status === 'NEW' || problem.status === 'IN_PROGRESS') {
+                <button (click)="openInterventionForm(problem.id)"
+                  class="rounded-lg bg-indigo-50 border border-indigo-300 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                  + Intervention
+                </button>
               }
 
               <!-- Détails -->
@@ -148,6 +153,52 @@
                   </ul>
                 </div>
               }
+
+              <!-- Interventions -->
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Interventions</p>
+                @if (loadingInterventions() === problem.id) {
+                  <div class="flex justify-center py-4">
+                    <div class="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                  </div>
+                } @else if ((problemInterventions().get(problem.id) ?? []).length === 0) {
+                  <p class="text-sm text-gray-500 italic">Aucune intervention pour ce problème.</p>
+                } @else {
+                  <div class="space-y-2">
+                    @for (interv of problemInterventions().get(problem.id) ?? []; track interv.id) {
+                      <div class="rounded-lg border border-gray-200 bg-white px-3 py-2">
+                        <div class="flex items-center justify-between gap-2">
+                          <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-800">
+                              {{ interventionActionTypeLabels[interv.actionType] }}
+                              <span class="text-gray-400 font-normal">— {{ interv.agentFullName }}</span>
+                            </p>
+                            <p class="text-xs text-gray-500 mt-0.5 truncate">{{ interv.description }}</p>
+                          </div>
+                          <div class="flex items-center gap-2 shrink-0">
+                            <span [class]="'inline-flex rounded-full px-2 py-0.5 text-xs font-medium ' + getInterventionStatusClass(interv.status)">
+                              {{ interventionStatusLabels[interv.status] }}
+                            </span>
+                            <button
+                              (click)="openHistory(interv.id)"
+                              class="px-2 py-1 text-xs font-medium rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors">
+                              Historique
+                            </button>
+                            @if (interv.status !== 'CLOTUREE') {
+                              <button
+                                (click)="closeIntervention(interv.id, problem.id)"
+                                [disabled]="closingInterventionId() === interv.id"
+                                class="px-2 py-1 text-xs font-medium rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50">
+                                {{ closingInterventionId() === interv.id ? '...' : 'Clôturer' }}
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
             </div>
           }
         </div>
@@ -182,4 +233,52 @@
     [agents]="agents()"
     (submitted)="onEditSubmitted($event)"
     (cancelled)="editingProblem.set(null)"/>
+}
+
+<!-- Modal création intervention -->
+@if (showInterventionFormForProblem() !== null) {
+  <app-intervention-create-form
+    [problemId]="showInterventionFormForProblem()!"
+    (created)="onInterventionCreated()"
+    (cancelled)="showInterventionFormForProblem.set(null)"/>
+}
+
+<!-- Modal historique des mises à jour -->
+@if (showHistoryForIntervention() !== null) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" (click)="closeHistory()">
+    <div class="mx-4 max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl" (click)="$event.stopPropagation()">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-800">Historique des mises à jour</h3>
+        <button (click)="closeHistory()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+      </div>
+      @if (loadingHistory()) {
+        <div class="flex justify-center py-8">
+          <div class="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+        </div>
+      } @else if (interventionHistory().length === 0) {
+        <p class="py-4 text-center text-sm text-gray-500 italic">Aucune mise à jour pour le moment.</p>
+      } @else {
+        <div class="space-y-4">
+          @for (update of interventionHistory(); track update.id) {
+            <div class="rounded-lg border border-gray-200 p-3">
+              <div class="mb-1 flex items-center justify-between">
+                <span class="text-xs text-gray-500">{{ update.createdAt | slice:0:16 | slice:0:10 }} {{ (update.createdAt | slice:11:16) }}</span>
+                <span [class]="'inline-flex rounded-full px-2 py-0.5 text-xs font-medium ' + getInterventionStatusClass(update.status)">
+                  {{ update.statusLabel }}
+                </span>
+              </div>
+              <p class="text-sm text-gray-700 whitespace-pre-line">{{ update.rapport }}</p>
+              @if (update.photos.length > 0) {
+                <div class="mt-2 flex gap-2">
+                  @for (photo of update.photos; track photo) {
+                    <img [src]="photo" class="h-16 w-16 rounded-lg object-cover border border-gray-200" />
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
 }

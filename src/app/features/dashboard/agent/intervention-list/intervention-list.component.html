@@ -1,0 +1,415 @@
+<!-- Flash success -->
+@if (successMessage()) {
+  <div class="mb-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+    <svg class="h-5 w-5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+    </svg>
+    <p class="text-sm font-medium text-emerald-800">{{ successMessage() }}</p>
+  </div>
+}
+
+<!-- Loading skeleton -->
+@if (loading()) {
+  <div class="grid gap-4 sm:grid-cols-2">
+    @for (i of [1, 2, 3, 4]; track i) {
+      <div class="animate-pulse rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div class="mb-3 flex items-center justify-between">
+          <div class="h-5 w-2/3 rounded bg-slate-200"></div>
+          <div class="h-6 w-20 rounded-full bg-slate-100"></div>
+        </div>
+        <div class="mb-2 h-4 w-1/2 rounded bg-slate-100"></div>
+        <div class="mb-4 h-4 w-1/3 rounded bg-slate-100"></div>
+        <div class="flex gap-2">
+          <div class="h-8 w-16 rounded-lg bg-slate-100"></div>
+          <div class="h-8 w-20 rounded-lg bg-slate-100"></div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- Cards list -->
+@if (!loading() && interventions().length > 0) {
+  <div class="grid gap-4 sm:grid-cols-2">
+    @for (intervention of interventions(); track intervention.id) {
+      <div
+        class="flex flex-col rounded-xl border bg-white shadow-sm transition"
+        [class.border-slate-100]="intervention.status !== 'CLOTUREE'"
+        [class.border-slate-200]="intervention.status === 'CLOTUREE'"
+        [class.opacity-60]="intervention.status === 'CLOTUREE'">
+
+        <!-- Card body -->
+        <div class="flex-1 p-4 pb-3">
+          <div class="mb-2.5 flex items-start justify-between gap-2">
+            <h3 class="text-sm font-semibold text-slate-800 line-clamp-1">
+              {{ intervention.problemTitle || 'Intervention #' + intervention.id }}
+            </h3>
+            <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium {{ getStatusClass(intervention.status) }}">
+              <span class="h-1.5 w-1.5 rounded-full {{ getStatusDot(intervention.status) }}"></span>
+              {{ statusLabels[intervention.status] }}
+            </span>
+          </div>
+
+          <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+            <span>{{ actionTypeLabels[intervention.actionType] }}</span>
+            <span class="text-slate-300">|</span>
+            <span>{{ intervention.agentFullName }}</span>
+          </div>
+          <div class="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+            <span class="flex items-center gap-1">
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              {{ intervention.interventionDate | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+            <span class="flex items-center gap-1">
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              {{ intervention.duration != null ? intervention.duration + ' min' : 'En cours' }}
+            </span>
+          </div>
+
+          <p class="text-xs leading-relaxed text-slate-500 line-clamp-2">
+            {{ truncate(intervention.description, 100) }}
+          </p>
+        </div>
+
+        <!-- Card footer -->
+        <div class="flex items-center gap-2 border-t border-slate-100 px-4 py-3">
+          <button
+            type="button"
+            class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+            (click)="openDetail(intervention)">
+            Détail
+          </button>
+          <button
+            type="button"
+            class="rounded-lg px-3 py-1.5 text-xs font-medium transition"
+            [class.bg-teal-600]="canEdit(intervention)"
+            [class.text-white]="canEdit(intervention)"
+            [class.hover:bg-teal-700]="canEdit(intervention)"
+            [class.bg-slate-100]="!canEdit(intervention)"
+            [class.text-slate-400]="!canEdit(intervention)"
+            [class.cursor-not-allowed]="!canEdit(intervention)"
+            [disabled]="!canEdit(intervention)"
+            [title]="canEdit(intervention) ? 'Nouvelle mise à jour' : 'Non modifiable'"
+            (click)="canEdit(intervention) && openEdit(intervention)">
+            Modifier
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (totalElements() > pageSize) {
+    <div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+      <p class="text-sm text-slate-500">
+        Page {{ currentPage() + 1 }} / {{ totalPages() }}
+        <span class="text-slate-400">({{ totalElements() }})</span>
+      </p>
+      <div class="flex gap-2">
+        <button
+          class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="currentPage() === 0"
+          (click)="onPageChange(currentPage() - 1)">
+          Précédent
+        </button>
+        <button
+          class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="currentPage() + 1 >= totalPages()"
+          (click)="onPageChange(currentPage() + 1)">
+          Suivant
+        </button>
+      </div>
+    </div>
+  }
+}
+
+<!-- Empty state -->
+@if (!loading() && interventions().length === 0) {
+  <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-14 text-center">
+    <div class="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
+      <svg class="h-7 w-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+    </div>
+    <p class="font-medium text-slate-600">Vous n'avez aucune intervention assignée</p>
+    <p class="mt-1 text-sm text-slate-400">Vos interventions apparaîtront ici.</p>
+  </div>
+}
+
+
+<!-- =============== MODAL 1 — Détail avec timeline =============== -->
+@if (showDetailModal() && selectedIntervention()) {
+  <div class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-10" (click)="closeModals()">
+    <div class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
+        <div class="min-w-0 flex-1">
+          <h2 class="truncate text-lg font-bold text-slate-900">
+            {{ selectedIntervention()!.problemTitle || 'Intervention #' + selectedIntervention()!.id }}
+          </h2>
+        </div>
+        <div class="ml-3 flex items-center gap-2">
+          <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ getStatusClass(selectedIntervention()!.status) }}">
+            {{ statusLabels[selectedIntervention()!.status] }}
+          </span>
+          <button class="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50" (click)="closeModals()">X</button>
+        </div>
+      </div>
+
+      <div class="space-y-5 p-5">
+        <!-- Info grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-lg bg-slate-50 p-3">
+            <p class="text-xs text-slate-400">Agent</p>
+            <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ selectedIntervention()!.agentFullName }}</p>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-3">
+            <p class="text-xs text-slate-400">Type d'action</p>
+            <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ actionTypeLabels[selectedIntervention()!.actionType] }}</p>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-3">
+            <p class="text-xs text-slate-400">Date</p>
+            <p class="mt-0.5 text-sm font-semibold text-slate-800">{{ selectedIntervention()!.interventionDate | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          <div class="rounded-lg bg-slate-50 p-3">
+            <p class="text-xs text-slate-400">Durée</p>
+            <p class="mt-0.5 text-sm font-semibold text-slate-800">
+              {{ selectedIntervention()!.duration != null ? selectedIntervention()!.duration + ' min' : 'En cours' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="rounded-lg border border-teal-100 bg-teal-50/60 p-4">
+          <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-teal-600">Description</p>
+          <p class="text-sm leading-relaxed text-slate-700">{{ selectedIntervention()!.description }}</p>
+        </div>
+
+        <!-- Photos super agent -->
+        @if (selectedIntervention()!.photos.length > 0) {
+          <div>
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-teal-600">Photos du super agent</p>
+            <div class="flex flex-wrap gap-3">
+              @for (photo of selectedIntervention()!.photos; track photo) {
+                <img [src]="photo" alt="Photo" class="h-20 w-20 rounded-lg border border-teal-200 object-cover">
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Historique des mises à jour -->
+        <div>
+          <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Historique des mises à jour</p>
+
+          @if (loadingUpdates()) {
+            <div class="flex justify-center py-6">
+              <div class="h-5 w-5 animate-spin rounded-full border-2 border-teal-600 border-t-transparent"></div>
+            </div>
+          } @else if (interventionUpdates().length === 0) {
+            <p class="py-4 text-center text-sm italic text-slate-400">Aucune mise à jour pour le moment</p>
+          } @else {
+            <div class="space-y-3">
+              @for (update of interventionUpdates(); track update.id) {
+                <div class="rounded-lg border border-slate-200 p-3">
+                  <div class="mb-1.5 flex items-center justify-between">
+                    <span class="text-xs text-slate-400">{{ update.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ getStatusClass(update.status) }}">
+                      {{ update.statusLabel }}
+                    </span>
+                  </div>
+                  <p class="whitespace-pre-line text-sm leading-relaxed text-slate-700">{{ update.rapport }}</p>
+                  @if (update.photos.length > 0) {
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      @for (photo of update.photos; track photo) {
+                        <img [src]="photo" alt="Photo" class="h-16 w-16 rounded-lg border border-slate-200 object-cover">
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-3">
+        @if (canEdit(selectedIntervention()!)) {
+          <button
+            class="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
+            (click)="showDetailModal.set(false); openEdit(selectedIntervention()!)">
+            Modifier
+          </button>
+        }
+        <button class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50" (click)="closeModals()">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+
+<!-- =============== MODAL 2 — Nouvelle mise à jour =============== -->
+@if (showEditModal() && selectedIntervention()) {
+  <div class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-10" (click)="closeModals()">
+    <div class="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-semibold uppercase tracking-wide text-teal-600">Nouvelle mise à jour</p>
+          <h2 class="mt-0.5 truncate text-lg font-bold text-slate-900">
+            {{ selectedIntervention()!.problemTitle || 'Intervention #' + selectedIntervention()!.id }}
+          </h2>
+        </div>
+        <div class="ml-3 flex items-center gap-2">
+          <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ getStatusClass(selectedIntervention()!.status) }}">
+            {{ statusLabels[selectedIntervention()!.status] }}
+          </span>
+          <button class="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
+            [disabled]="submitting()" (click)="closeModals()">X</button>
+        </div>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5 p-5">
+
+        <!-- Context info -->
+        <div class="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+          <span class="font-medium">{{ actionTypeLabels[selectedIntervention()!.actionType] }}</span>
+          <span class="mx-2 text-slate-300">|</span>
+          <span>{{ selectedIntervention()!.interventionDate | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+
+        <!-- Error -->
+        @if (errorMessage()) {
+          <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <!-- Rapport -->
+        <div>
+          <div class="mb-1 flex items-center justify-between">
+            <label class="text-sm font-medium text-slate-700">Rapport <span class="text-red-500">*</span></label>
+            <span class="text-xs text-slate-400">{{ rapportLength }} / 5000</span>
+          </div>
+          <textarea
+            formControlName="rapport"
+            rows="4"
+            class="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm transition focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
+            placeholder="Décrivez les actions réalisées…"></textarea>
+          @if (form.controls.rapport.touched && form.controls.rapport.errors) {
+            <p class="mt-1 text-xs text-red-500">
+              @if (form.controls.rapport.errors['required']) {
+                Le rapport est obligatoire.
+              } @else if (form.controls.rapport.errors['maxlength']) {
+                5000 caractères maximum.
+              }
+            </p>
+          }
+        </div>
+
+        <!-- Statut -->
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-700">Statut <span class="text-red-500">*</span></label>
+          <select
+            formControlName="status"
+            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+            <option value="" disabled>Sélectionner un statut</option>
+            @for (opt of agentStatusOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Photos de preuve -->
+        <div>
+          <p class="mb-2 text-sm font-medium text-slate-700">
+            Photos de preuve ({{ updatePhotos().length }}/3)
+          </p>
+
+          @if (updatePhotos().length > 0) {
+            <div class="mb-3 flex flex-wrap gap-3">
+              @for (photo of updatePhotos(); track photo; let i = $index) {
+                <div class="group relative">
+                  <img [src]="photo" alt="Photo"
+                    class="h-20 w-20 rounded-lg border border-slate-200 object-cover">
+                  <button
+                    type="button"
+                    title="Retirer"
+                    (click)="removeUpdatePhoto(i)"
+                    class="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow transition-opacity group-hover:opacity-100 hover:bg-red-600">
+                    <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          @if (photoError()) {
+            <p class="mb-2 text-xs text-red-600">{{ photoError() }}</p>
+          }
+
+          @if (updatePhotos().length < 3) {
+            <input type="file" accept="image/*" class="hidden" #editFileInput (change)="onPhotoFileSelected($event)">
+            <button
+              type="button"
+              [disabled]="uploadingPhoto()"
+              (click)="editFileInput.click()"
+              class="inline-flex items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-teal-400 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-50">
+              @if (uploadingPhoto()) {
+                <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Upload en cours…
+              } @else {
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Ajouter une photo
+              }
+            </button>
+          }
+        </div>
+      </form>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-3">
+        <button
+          type="button"
+          class="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+          [disabled]="submitting()"
+          (click)="closeModals()">
+          Annuler
+        </button>
+        <button
+          type="button"
+          class="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-50"
+          [disabled]="form.invalid || submitting()"
+          (click)="onSubmit()">
+          @if (submitting()) {
+            <span class="flex items-center gap-2">
+              <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              Enregistrement…
+            </span>
+          } @else {
+            Enregistrer
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
