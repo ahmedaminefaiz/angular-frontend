@@ -59,9 +59,8 @@ export class ApprovedAlertsComponent implements OnInit {
     this.selectedProblem.set(null);
   }
 
-  assignedName(problem: ProblemResponse): string {
-    if (!problem.assignedTo) return 'Non assigné';
-    return `${problem.assignedTo.firstName} ${problem.assignedTo.lastName}`;
+  assignedName(_problem: ProblemResponse): string {
+    return 'Via interventions';
   }
 
   statusLabel(status: ProblemStatus): string {
