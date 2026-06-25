@@ -69,6 +69,25 @@
             class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
         </div>
 
+        <!-- Criticité -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700">
+            Criticité <span class="text-red-500">*</span>
+          </label>
+          @if (loadingCriticalities()) {
+            <p class="mt-1 text-sm text-gray-400">Chargement des criticités…</p>
+          } @else if (criticalities().length === 0) {
+            <p class="mt-1 text-sm text-amber-600 italic">Aucune criticité disponible.</p>
+          } @else {
+            <select formControlName="criticalityId"
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option [ngValue]="null" disabled>Sélectionnez une criticité</option>
+              @for (c of criticalities(); track c.id) {
+                <option [ngValue]="c.id">{{ c.name }} — délai {{ c.delayHours }}h</option>
+              }
+            </select>
+          }
+        </div>
       }
 
       @if (mode() === 'existing') {

@@ -3,9 +3,9 @@ import {
 } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AlertResponse } from '../../../../models/alert.models';
-import { ProblemResponse } from '../../../../models/problem.models';
-import { UserSummaryResponse } from '../../../../models/user-management.models';
+import { CriticalityResponse, ProblemResponse } from '../../../../models/problem.models';
 import { ProblemsService } from '../../../../services/problems.service';
+import { CriticalityService } from '../../../../services/criticality.service';
 
 type FormMode = 'new' | 'existing';
 
@@ -17,7 +17,6 @@ type FormMode = 'new' | 'existing';
 })
 export class QualifyFormComponent implements OnInit {
   @Input({ required: true }) preselectedAlerts: AlertResponse[] = [];
-  @Input({ required: true }) agents: UserSummaryResponse[] = [];
   @Output() submitted = new EventEmitter<ProblemResponse>();
   @Output() cancelled = new EventEmitter<void>();
 
@@ -26,13 +25,16 @@ export class QualifyFormComponent implements OnInit {
 
   readonly selectedAlerts = signal<AlertResponse[]>([]);
   readonly existingProblems = signal<ProblemResponse[]>([]);
+  readonly criticalities = signal<CriticalityResponse[]>([]);
   readonly loadingProblems = signal(false);
+  readonly loadingCriticalities = signal(false);
   readonly submitting = signal(false);
   readonly error = signal('');
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly problemsService: ProblemsService
+    private readonly problemsService: ProblemsService,
+    private readonly criticalityService: CriticalityService
   ) {}
 
   ngOnInit(): void {
@@ -40,9 +42,11 @@ export class QualifyFormComponent implements OnInit {
     this.form = this.fb.group({
       title: [''],
       description: [''],
+      criticalityId: [null, Validators.required],
       existingProblemId: [null]
     });
     this.loadExistingProblems();
+    this.loadCriticalities();
   }
 
   setMode(m: FormMode): void {
@@ -62,10 +66,16 @@ export class QualifyFormComponent implements OnInit {
     }
 
     if (this.mode() === 'new') {
+      const criticalityId = this.form.get('criticalityId')?.value;
+      if (!criticalityId) {
+        this.error.set('Veuillez sélectionner une criticité.');
+        return;
+      }
       this.submitting.set(true);
       this.problemsService.createProblem({
         title: this.form.get('title')?.value || undefined,
         description: this.form.get('description')?.value || undefined,
+        criticalityId: Number(criticalityId),
         alertIds: this.selectedAlerts().map(a => a.id)
       }).subscribe({
         next: (problem) => {
@@ -106,6 +116,14 @@ export class QualifyFormComponent implements OnInit {
         this.loadingProblems.set(false);
       },
       error: () => this.loadingProblems.set(false)
+    });
+  }
+
+  private loadCriticalities(): void {
+    this.loadingCriticalities.set(true);
+    this.criticalityService.getAll().subscribe({
+      next: (list) => { this.criticalities.set(list); this.loadingCriticalities.set(false); },
+      error: () => this.loadingCriticalities.set(false)
     });
   }
 }

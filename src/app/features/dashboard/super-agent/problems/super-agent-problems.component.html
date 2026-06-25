@@ -111,6 +111,26 @@
           <!-- Détails étendus -->
           @if (expandedId() === problem.id) {
             <div class="border-t border-gray-100 bg-gray-50 px-5 py-4 space-y-3">
+
+              <!-- Criticité -->
+              <div class="flex items-center gap-3 rounded-lg border border-orange-100 bg-orange-50 px-4 py-2.5">
+                <div class="shrink-0 h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
+                  <svg class="h-4 w-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-orange-700">Criticité</p>
+                  @if (problem.criticality) {
+                    <p class="text-sm font-medium text-orange-900">{{ problem.criticality.name }}</p>
+                    <p class="text-xs text-orange-600">Délai d'intervention : {{ problem.criticality.delayHours }}h</p>
+                  } @else {
+                    <p class="text-sm text-orange-400 italic">Non définie</p>
+                  }
+                </div>
+              </div>
+
               @if (problem.description) {
                 <div>
                   <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Description</p>
@@ -230,7 +250,6 @@
 @if (editingProblem()) {
   <app-edit-problem-form
     [problem]="editingProblem()!"
-    [agents]="agents()"
     (submitted)="onEditSubmitted($event)"
     (cancelled)="editingProblem.set(null)"/>
 }
