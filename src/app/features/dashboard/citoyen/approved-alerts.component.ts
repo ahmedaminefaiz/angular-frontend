@@ -59,8 +59,9 @@ export class ApprovedAlertsComponent implements OnInit {
     this.selectedProblem.set(null);
   }
 
-  assignedName(_problem: ProblemResponse): string {
-    return 'Via interventions';
+  criticalityLabel(problem: ProblemResponse): string {
+    if (!problem.criticality) return '—';
+    return `${problem.criticality.name} (${problem.criticality.delayHours}h)`;
   }
 
   statusLabel(status: ProblemStatus): string {

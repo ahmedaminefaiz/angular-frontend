@@ -30,7 +30,14 @@ export class ProblemsService {
     return this.http.get<ApiPage<ProblemResponse>>(`${this.base}/user/my-problems`, { params });
   }
 
+  /** Citoyen : problèmes liés à ses alertes */
   getProblemsRelatedToMyAlerts(page = 0, size = 9): Observable<ApiPage<ProblemResponse>> {
+    const params = new HttpParams().set('page', String(page)).set('size', String(size));
+    return this.http.get<ApiPage<ProblemResponse>>(`${this.base}/user/my-alert-problems`, { params });
+  }
+
+  /** Super-Agent : problèmes de son équipe */
+  getMyProblems(page = 0, size = 10): Observable<ApiPage<ProblemResponse>> {
     const params = new HttpParams().set('page', String(page)).set('size', String(size));
     return this.http.get<ApiPage<ProblemResponse>>(`${this.base}/user/my-problems`, { params });
   }

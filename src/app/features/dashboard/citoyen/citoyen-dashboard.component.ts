@@ -74,7 +74,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.currentUserId = this.tokenService.getUserId();
     this.loadProblemTypes();
-    this.fetchProblems();
+    this.fetchMyAlerts(0, 30, false);
     this.listenRouteTab();
   }
 
@@ -106,6 +106,10 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   get myAlertsInProgress(): number {
     return this.myAlertsPage().content.filter(a => a.status === 'NEW' || a.status === 'IN_PROGRESS').length;
+  }
+
+  get myAlertsResolved(): number {
+    return this.myAlertsPage().content.filter(a => a.status === 'RESOLVED').length;
   }
 
   changePage(nextPage: number): void {
@@ -233,10 +237,6 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
         error: (err) => this.pageErrorMessage.set(this.extractApiError(err))
       })
     );
-  }
-
-  getProblemAssignedName(problem: ProblemResponse): string {
-    return 'Via interventions';
   }
 
   private loadProblemTypes(): void {
