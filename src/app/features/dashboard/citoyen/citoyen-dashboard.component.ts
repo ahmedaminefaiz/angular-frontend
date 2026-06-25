@@ -7,8 +7,10 @@ import {
   ApiPage,
   CreateAlertRequest
 } from '../../../models/alert.models';
+import { ProblemResponse } from '../../../models/problem.models';
 import { TokenService } from '../../../core/services/token.service';
 import { AlertsService } from '../../../services/alerts.service';
+import { ProblemsService } from '../../../services/problems.service';
 import { ProblemTypesService } from '../../../services/problem-types.service';
 import { AlertTableComponent } from './alert-table.component';
 import { AlertDetailModalComponent } from './alert-detail-modal.component';
@@ -38,6 +40,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   readonly allAlertsPage = signal<ApiPage<AlertResponse>>({ content: [], totalElements: 0, totalPages: 0, size: 30, number: 0 });
   readonly myAlertsPage = signal<ApiPage<AlertResponse>>({ content: [], totalElements: 0, totalPages: 0, size: 30, number: 0 });
+  readonly problemsPage = signal<ApiPage<ProblemResponse>>({ content: [], totalElements: 0, totalPages: 0, size: 9, number: 0 });
 
   readonly allAlertsLoading = signal(false);
   readonly myAlertsLoading = signal(false);
@@ -62,6 +65,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly alertsService: AlertsService,
+    private readonly problemsService: ProblemsService,
     private readonly problemTypesService: ProblemTypesService,
     private readonly tokenService: TokenService,
     private readonly route: ActivatedRoute
@@ -246,6 +250,16 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
   private loadAllTabsData(): void {
     this.fetchAllAlerts(0, 30, false);
     this.fetchMyAlerts(0, 30, false);
+    this.fetchProblems();
+  }
+
+  private fetchProblems(): void {
+    this.subscriptions.add(
+      this.problemsService.getProblemsRelatedToMyAlerts(0, 9).subscribe({
+        next: (data) => this.problemsPage.set(data),
+        error: () => {}
+      })
+    );
   }
 
   private loadActiveTabData(): void {

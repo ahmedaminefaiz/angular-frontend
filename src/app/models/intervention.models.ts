@@ -61,6 +61,7 @@ export interface CreateInterventionRequest {
 export interface CreateInterventionUpdateRequest {
   rapport: string;
   status: InterventionStatus;
+  statusDate: string;
   photos?: string[];
 }
 
@@ -71,5 +72,6 @@ export interface InterventionUpdateResponse {
   status: InterventionStatus;
   statusLabel: string;
   photos: string[];
+  statusDate: string;
   createdAt: string;
 }

@@ -218,7 +218,7 @@
               @for (update of interventionUpdates(); track update.id) {
                 <div class="rounded-lg border border-slate-200 p-3">
                   <div class="mb-1.5 flex items-center justify-between">
-                    <span class="text-xs text-slate-400">{{ update.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span class="text-xs text-slate-400">{{ update.statusDate | date:'dd/MM/yyyy HH:mm' }}</span>
                     <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ getStatusClass(update.status) }}">
                       {{ update.statusLabel }}
                     </span>
@@ -327,6 +327,18 @@
               <option [value]="opt.value">{{ opt.label }}</option>
             }
           </select>
+        </div>
+
+        <!-- Date de l'action -->
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-700">Date et heure de l'action <span class="text-red-500">*</span></label>
+          <input
+            type="datetime-local"
+            formControlName="statusDate"
+            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm transition focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100">
+          @if (form.controls.statusDate.touched && form.controls.statusDate.errors) {
+            <p class="mt-1 text-xs text-red-500">La date de l'action est obligatoire.</p>
+          }
         </div>
 
         <!-- Photos de preuve -->
