@@ -1,50 +1,88 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-50">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow p-8">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Connexion</h1>
+<div class="relative grid min-h-screen lg:grid-cols-2">
 
-    @if (verifiedMessage()) {
-      <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-        {{ verifiedMessage() }}
+  <div class="fixed right-5 top-5 z-20"><app-theme-toggle /></div>
+
+  <!-- Left: brand / mission panel -->
+  <div class="relative hidden flex-col justify-between overflow-hidden border-r border-line bg-canvas-2 p-10 lg:flex">
+    <div class="flex items-center gap-3">
+      <span class="relative grid h-10 w-10 place-items-center rounded-lg border border-line-strong bg-surface">
+        <span class="h-3.5 w-3.5 rotate-45 rounded-[2px] bg-signal" style="box-shadow:0 0 14px 0 rgba(214,255,62,.8)"></span>
+      </span>
+      <span class="text-xl font-bold tracking-tight">Urban<span class="text-signal">Alert</span></span>
+    </div>
+
+    <div class="max-w-md">
+      <p class="microlabel mb-4">Centre de supervision urbaine</p>
+      <h2 class="text-4xl font-bold leading-tight tracking-tight">
+        Chaque signalement<br>devient une <span class="text-signal text-glow-signal">intervention.</span>
+      </h2>
+      <p class="mt-5 text-muted">
+        Du citoyen au terrain — une chaîne de commandement claire pour traiter les incidents urbains en temps réel.
+      </p>
+    </div>
+
+    <!-- live readout strip -->
+    <div class="space-y-2.5">
+      <div class="flex items-center gap-3 rounded-lg border border-line bg-surface/50 px-4 py-2.5">
+        <span class="dot dot-crit pulse"></span>
+        <span class="mono text-xs text-ink-dim">A-2049</span>
+        <span class="flex-1 text-sm text-muted">Fuite d'eau · Casablanca</span>
+        <span class="chip chip-crit">Critique</span>
       </div>
-    }
+      <div class="flex items-center gap-3 rounded-lg border border-line bg-surface/50 px-4 py-2.5">
+        <span class="dot dot-ok"></span>
+        <span class="mono text-xs text-ink-dim">A-2041</span>
+        <span class="flex-1 text-sm text-muted">Éclairage public · Rabat</span>
+        <span class="chip chip-ok">Résolu</span>
+      </div>
+    </div>
+  </div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-        <app-moroccan-phone-input formControlName="phone" />
-        @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Numéro marocain invalide (ex: 612345678)</p>
-        }
+  <!-- Right: form -->
+  <div class="flex items-center justify-center px-6 py-12">
+    <div class="animate-rise w-full max-w-sm">
+      <!-- mobile brand -->
+      <div class="mb-8 flex items-center gap-3 lg:hidden">
+        <span class="relative grid h-9 w-9 place-items-center rounded-lg border border-line-strong bg-surface">
+          <span class="h-3 w-3 rotate-45 rounded-[2px] bg-signal" style="box-shadow:0 0 12px 0 rgba(214,255,62,.8)"></span>
+        </span>
+        <span class="text-lg font-bold tracking-tight">Urban<span class="text-signal">Alert</span></span>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-        <input
-          formControlName="password"
-          type="password"
-          placeholder="••••••••"
-          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+      <p class="microlabel mb-2">Accès opérateur</p>
+      <h1 class="mb-7 text-2xl font-bold tracking-tight">Connexion</h1>
 
-      @if (error()) {
-        <p class="text-red-600 text-sm">{{ error() }}</p>
+      @if (verifiedMessage()) {
+        <div class="banner banner-ok mb-5">{{ verifiedMessage() }}</div>
       }
 
-      <button
-        type="submit"
-        [disabled]="form.invalid || loading()"
-        class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
-      >
-        {{ loading() ? 'Connexion...' : 'Se connecter' }}
-      </button>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+        <div>
+          <label class="field-label">Téléphone</label>
+          <app-moroccan-phone-input formControlName="phone" />
+          @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
+            <p class="mt-1.5 text-xs text-crit">Numéro marocain invalide (ex: 612345678)</p>
+          }
+        </div>
 
-    </form>
+        <div>
+          <label class="field-label">Mot de passe</label>
+          <input formControlName="password" type="password" placeholder="••••••••" class="field" />
+        </div>
 
-    <p class="text-sm text-center text-gray-500 mt-6">
-      Pas encore de compte ?
-      <a routerLink="/register" class="text-blue-600 hover:underline">S'inscrire</a>
-    </p>
+        @if (error()) {
+          <div class="banner banner-crit">{{ error() }}</div>
+        }
+
+        <button type="submit" [disabled]="form.invalid || loading()" class="btn btn-signal w-full">
+          {{ loading() ? 'Connexion…' : 'Se connecter' }}
+        </button>
+      </form>
+
+      <p class="mt-7 text-center text-sm text-muted">
+        Pas encore de compte ?
+        <a routerLink="/register" class="font-medium text-signal hover:underline">S'inscrire</a>
+      </p>
+    </div>
   </div>
 </div>

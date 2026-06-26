@@ -63,12 +63,12 @@ export class AdminDashboardComponent implements OnInit {
 
   priorityClass(priority: string): string {
     const map: Record<string, string> = {
-      CRITICAL: 'bg-red-100 text-red-700',
-      HIGH: 'bg-orange-100 text-orange-700',
-      MEDIUM: 'bg-yellow-100 text-yellow-700',
-      LOW: 'bg-blue-100 text-blue-700'
+      CRITICAL: 'chip-crit',
+      HIGH: 'chip-amber',
+      MEDIUM: 'chip-info',
+      LOW: 'chip-ok'
     };
-    return map[priority] ?? 'bg-gray-100 text-gray-600';
+    return map[priority] ?? 'chip-neutral';
   }
 
   priorityLabel(priority: string): string {
@@ -93,11 +93,11 @@ export class AdminDashboardComponent implements OnInit {
 
   problemStatusClass(status: string): string {
     const map: Record<string, string> = {
-      NEW: 'bg-blue-100 text-blue-700',
-      IN_PROGRESS: 'bg-yellow-100 text-yellow-700',
-      RESOLVED: 'bg-green-100 text-green-700',
-      REJECTED: 'bg-red-100 text-red-700'
+      NEW: 'chip-info',
+      IN_PROGRESS: 'chip-amber',
+      RESOLVED: 'chip-ok',
+      REJECTED: 'chip-crit'
     };
-    return map[status] ?? 'bg-gray-100 text-gray-600';
+    return map[status] ?? 'chip-neutral';
   }
 }

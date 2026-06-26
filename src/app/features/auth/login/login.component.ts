@@ -5,11 +5,12 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TokenService } from '../../../core/services/token.service';
 import { Role } from '../../../models/auth.models';
 import { MoroccanPhoneInputComponent } from '../../../shared/phone-input/moroccan-phone-input.component';
+import { ThemeToggleComponent } from '../../../shared/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, MoroccanPhoneInputComponent],
+  imports: [ReactiveFormsModule, RouterLink, MoroccanPhoneInputComponent, ThemeToggleComponent],
   templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {

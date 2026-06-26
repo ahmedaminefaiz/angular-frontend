@@ -5,9 +5,27 @@
   <title>DemoFrontend</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0B0C0E">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Resolve theme before first paint (saved choice, else OS preference) to avoid a flash -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('theme');
+        var theme = (saved === 'light' || saved === 'dark')
+          ? saved
+          : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'light' ? '#f4f1ea' : '#0b0c0e');
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="bg-canvas">
   <app-root></app-root>
 </body>
 </html>

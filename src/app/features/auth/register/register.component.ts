@@ -4,11 +4,12 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { Role } from '../../../models/auth.models';
 import { MoroccanPhoneInputComponent } from '../../../shared/phone-input/moroccan-phone-input.component';
+import { ThemeToggleComponent } from '../../../shared/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, MoroccanPhoneInputComponent],
+  imports: [ReactiveFormsModule, RouterLink, MoroccanPhoneInputComponent, ThemeToggleComponent],
   templateUrl: './register.component.html'
 })
 export class RegisterComponent {

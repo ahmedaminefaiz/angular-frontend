@@ -67,11 +67,11 @@ export class ProblemDetailComponent implements OnInit, OnDestroy {
 
   getStatusClass(status: string): string {
     const classes: Record<string, string> = {
-      NEW: 'bg-blue-100 text-blue-800',
-      IN_PROGRESS: 'bg-yellow-100 text-yellow-800',
-      RESOLVED: 'bg-green-100 text-green-800',
-      REJECTED: 'bg-red-100 text-red-800'
+      NEW: 'chip-info',
+      IN_PROGRESS: 'chip-amber',
+      RESOLVED: 'chip-ok',
+      REJECTED: 'chip-crit'
     };
-    return classes[status] || 'bg-gray-100 text-gray-800';
+    return classes[status] || 'chip-neutral';
   }
 }

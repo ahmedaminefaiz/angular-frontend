@@ -1,94 +1,65 @@
-<div class="space-y-6">
+<div class="animate-fade space-y-5">
 
-  <!-- Welcome banner -->
-  <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl p-6 text-white">
-    <h2 class="text-2xl font-bold mb-1">Espace Agent</h2>
-    <p class="text-indigo-100 text-sm">Consultez et gérez vos interventions assignées.</p>
+  <!-- Header -->
+  <div class="panel p-6">
+    <p class="microlabel mb-2">Espace agent</p>
+    <h2 class="text-2xl font-bold tracking-tight">Vos interventions sur le terrain</h2>
+    <p class="mt-1 text-sm text-muted">Consultez et gérez les interventions qui vous sont assignées.</p>
   </div>
 
   <!-- Stats -->
   @if (loading()) {
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
       @for (_ of [1,2,3,4]; track $index) {
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center animate-pulse">
-          <div class="h-8 w-12 bg-gray-200 rounded mx-auto mb-2"></div>
-          <div class="h-3 w-20 bg-gray-100 rounded mx-auto"></div>
-        </div>
+        <div class="panel animate-pulse p-5"><div class="mb-2 h-8 w-12 rounded bg-surface-2"></div><div class="h-3 w-20 rounded bg-surface-2"></div></div>
       }
     </div>
   } @else {
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-gray-800">{{ totalCount() }}</p>
-        <p class="text-xs text-gray-500 mt-1">Total interventions</p>
-      </div>
-      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-blue-500">{{ affecteeCount() }}</p>
-        <p class="text-xs text-gray-500 mt-1">Affectées</p>
-      </div>
-      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-yellow-500">{{ enCoursCount() }}</p>
-        <p class="text-xs text-gray-500 mt-1">En cours</p>
-      </div>
-      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-green-500">{{ resolueCount() }}</p>
-        <p class="text-xs text-gray-500 mt-1">Résolues</p>
-      </div>
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div class="panel p-5"><p class="microlabel">Total</p><p class="mono mt-2 text-3xl font-bold text-ink">{{ totalCount() }}</p></div>
+      <div class="panel p-5"><p class="microlabel">Affectées</p><p class="mono mt-2 text-3xl font-bold text-info">{{ affecteeCount() }}</p></div>
+      <div class="panel p-5"><p class="microlabel">En cours</p><p class="mono mt-2 text-3xl font-bold text-amber">{{ enCoursCount() }}</p></div>
+      <div class="panel p-5"><p class="microlabel">Résolues</p><p class="mono mt-2 text-3xl font-bold text-ok">{{ resolueCount() }}</p></div>
     </div>
   }
 
   <!-- Recent interventions -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
-    <div class="flex items-center justify-between mb-5">
-      <h3 class="font-semibold text-gray-800">Interventions récentes</h3>
-      <a routerLink="/dashboard/agent/interventions"
-         class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-        Voir toutes →
-      </a>
+  <div class="panel p-6">
+    <div class="mb-5 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="dot dot-signal"></span>
+        <h3 class="microlabel" style="color:var(--color-ink-dim)">Interventions récentes</h3>
+      </div>
+      <a routerLink="/dashboard/agent/interventions" class="text-sm font-medium text-signal hover:underline">Voir toutes →</a>
     </div>
 
     @if (loading()) {
       <div class="space-y-3">
-        @for (_ of [1,2,3]; track $index) {
-          <div class="h-14 bg-gray-100 rounded-lg animate-pulse"></div>
-        }
+        @for (_ of [1,2,3]; track $index) { <div class="h-14 animate-pulse rounded-lg bg-surface-2"></div> }
       </div>
     } @else if (recentInterventions().length === 0) {
-      <div class="flex flex-col items-center justify-center py-10 text-center">
-        <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-3">
-          <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-          </svg>
-        </div>
-        <p class="text-gray-600 font-medium mb-1">Aucune intervention assignée</p>
-        <p class="text-sm text-gray-400">Les interventions vous seront assignées par votre superviseur.</p>
+      <div class="flex flex-col items-center justify-center py-12 text-center">
+        <span class="mb-3 grid h-12 w-12 place-items-center rounded-full border border-line bg-surface">
+          <svg class="h-6 w-6 text-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </span>
+        <p class="font-medium text-ink-dim">Aucune intervention assignée</p>
+        <p class="mt-1 text-sm text-faint">Les interventions vous seront assignées par votre superviseur.</p>
       </div>
     } @else {
-      <div class="divide-y divide-gray-50">
+      <div class="divide-y divide-line/60">
         @for (i of recentInterventions(); track i.id) {
-          <div class="py-3 flex items-center justify-between gap-3">
+          <div class="flex items-center justify-between gap-3 py-3">
             <div class="min-w-0">
-              <p class="text-sm font-medium text-gray-800 truncate">{{ i.problemTitle || 'Sans titre' }}</p>
-              <p class="text-xs text-gray-400 mt-0.5">{{ actionTypeLabels[i.actionType] }} · {{ i.interventionDate | date:'dd/MM/yyyy' }}</p>
+              <p class="truncate text-sm font-medium text-ink">{{ i.problemTitle || 'Sans titre' }}</p>
+              <p class="mono mt-0.5 text-[0.7rem] text-faint">{{ actionTypeLabels[i.actionType] }} · {{ i.interventionDate | date:'dd/MM/yy' }}</p>
             </div>
-            <span class="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
-              [class]="statusClass(i.status)">
-              {{ statusLabels[i.status] }}
-            </span>
+            <span class="chip flex-shrink-0" [class]="statusClass(i.status)">{{ statusLabels[i.status] }}</span>
           </div>
         }
       </div>
-      <div class="mt-4 pt-3 border-t border-gray-50">
-        <a routerLink="/dashboard/agent/interventions"
-           class="inline-flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium text-sm px-4 py-2.5 rounded-lg transition-colors">
-          Gérer mes interventions
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-        </a>
+      <div class="mt-5 border-t border-line pt-4">
+        <a routerLink="/dashboard/agent/interventions" class="btn btn-ghost btn-sm">Gérer mes interventions →</a>
       </div>
     }
   </div>
-
 </div>

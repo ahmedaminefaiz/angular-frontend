@@ -201,26 +201,26 @@ export class SuperAgentProblemsComponent implements OnInit {
 
   statusClass(status: string): string {
     const map: Record<string, string> = {
-      NEW: 'bg-blue-100 text-blue-700',
-      IN_PROGRESS: 'bg-amber-100 text-amber-700',
-      RESOLVED: 'bg-green-100 text-green-700',
-      REJECTED: 'bg-red-100 text-red-700'
+      NEW: 'chip-info',
+      IN_PROGRESS: 'chip-amber',
+      RESOLVED: 'chip-ok',
+      REJECTED: 'chip-crit'
     };
-    return map[status] ?? 'bg-gray-100 text-gray-700';
+    return map[status] ?? 'chip-neutral';
   }
 
   getInterventionStatusClass(status: InterventionStatus): string {
     const classes: Record<InterventionStatus, string> = {
-      AFFECTEE: 'bg-blue-100 text-blue-800',
-      EN_COURS: 'bg-yellow-100 text-yellow-800',
-      SUSPENDUE: 'bg-orange-100 text-orange-800',
-      EN_ATTENTE_AUTRE_EQUIPE: 'bg-purple-100 text-purple-800',
-      RESOLUE: 'bg-green-100 text-green-800',
-      PARTIELLEMENT_RESOLUE: 'bg-teal-100 text-teal-800',
-      ECHEC_INTERVENTION: 'bg-red-100 text-red-800',
-      CLOTUREE: 'bg-gray-200 text-gray-700'
+      AFFECTEE: 'chip-info',
+      EN_COURS: 'chip-amber',
+      SUSPENDUE: 'chip-amber',
+      EN_ATTENTE_AUTRE_EQUIPE: 'chip-neutral',
+      RESOLUE: 'chip-ok',
+      PARTIELLEMENT_RESOLUE: 'chip-ok',
+      ECHEC_INTERVENTION: 'chip-crit',
+      CLOTUREE: 'chip-neutral'
     };
-    return classes[status] || 'bg-gray-100 text-gray-800';
+    return classes[status] || 'chip-neutral';
   }
 
   nextStatuses(current: ProblemStatus): { value: ProblemStatus; label: string }[] {

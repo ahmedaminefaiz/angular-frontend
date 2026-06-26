@@ -1,98 +1,98 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-50 py-10">
-  <div class="w-full max-w-lg bg-white rounded-2xl shadow p-8">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">Créer un compte</h1>
+<div class="relative flex min-h-screen items-center justify-center px-6 py-12">
+  <div class="fixed right-5 top-5 z-20"><app-theme-toggle /></div>
+  <div class="animate-rise w-full max-w-lg">
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div class="mb-8 flex items-center gap-3">
+      <span class="relative grid h-9 w-9 place-items-center rounded-lg border border-line-strong bg-surface">
+        <span class="h-3 w-3 rotate-45 rounded-[2px] bg-signal" style="box-shadow:0 0 12px 0 rgba(214,255,62,.8)"></span>
+      </span>
+      <span class="text-lg font-bold tracking-tight">Urban<span class="text-signal">Alert</span></span>
+    </div>
 
-      <div class="grid grid-cols-2 gap-4">
+    <div class="panel p-8">
+      <p class="microlabel mb-2">Nouvel opérateur</p>
+      <h1 class="mb-7 text-2xl font-bold tracking-tight">Créer un compte</h1>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="field-label">Nom</label>
+            <input formControlName="nom" type="text" placeholder="Benali" class="field" />
+            @if (form.get('nom')?.invalid && form.get('nom')?.touched) {
+              <p class="mt-1.5 text-xs text-crit">Champ requis</p>
+            }
+          </div>
+          <div>
+            <label class="field-label">Prénom</label>
+            <input formControlName="prenom" type="text" placeholder="Yassine" class="field" />
+            @if (form.get('prenom')?.invalid && form.get('prenom')?.touched) {
+              <p class="mt-1.5 text-xs text-crit">Champ requis</p>
+            }
+          </div>
+        </div>
+
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
-          <input formControlName="nom" type="text" placeholder="Benali"
-            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          @if (form.get('nom')?.invalid && form.get('nom')?.touched) {
-            <p class="text-red-500 text-xs mt-1">Champ requis</p>
+          <label class="field-label">Téléphone</label>
+          <app-moroccan-phone-input formControlName="phone" />
+          @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
+            <p class="mt-1.5 text-xs text-crit">Numéro marocain invalide (ex: 612345678)</p>
           }
         </div>
+
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
-          <input formControlName="prenom" type="text" placeholder="Yassine"
-            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          @if (form.get('prenom')?.invalid && form.get('prenom')?.touched) {
-            <p class="text-red-500 text-xs mt-1">Champ requis</p>
+          <label class="field-label">Email <span class="text-faint">(optionnel)</span></label>
+          <input formControlName="email" type="email" placeholder="exemple@mail.com" class="field" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="field-label">Date de naissance</label>
+            <input formControlName="dateNaissance" type="date" class="field" />
+          </div>
+          <div>
+            <label class="field-label">Ville</label>
+            <input formControlName="ville" type="text" placeholder="Casablanca" class="field" />
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label">Mot de passe</label>
+          <input formControlName="password" type="password" placeholder="••••••••" class="field" />
+          @if (form.get('password')?.invalid && form.get('password')?.touched) {
+            <p class="mt-1.5 text-xs text-crit">Minimum 6 caractères</p>
           }
         </div>
-      </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-        <app-moroccan-phone-input formControlName="phone" />
-        @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Numéro marocain invalide (ex: 612345678)</p>
+        <div>
+          <label class="field-label">Rôle</label>
+          <select formControlName="role" class="field">
+            @for (role of roles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </div>
+
+        @if (showSupervisorId) {
+          <div>
+            <label class="field-label">ID du superviseur <span class="text-faint">(optionnel)</span></label>
+            <input formControlName="supervisorId" type="number" placeholder="Ex: 12" class="field" />
+          </div>
         }
-      </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email (optionnel)</label>
-        <input formControlName="email" type="email" placeholder="exemple@mail.com"
-          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Date de naissance</label>
-          <input formControlName="dateNaissance" type="date"
-            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Ville</label>
-          <input formControlName="ville" type="text" placeholder="Casablanca"
-            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-        <input formControlName="password" type="password" placeholder="••••••••"
-          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        @if (form.get('password')?.invalid && form.get('password')?.touched) {
-          <p class="text-red-500 text-xs mt-1">Minimum 6 caractères</p>
+        @if (error()) {
+          <div class="banner banner-crit">{{ error() }}</div>
         }
-      </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
-        <select formControlName="role"
-          class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-          @for (role of roles; track role) {
-            <option [value]="role">{{ role }}</option>
-          }
-        </select>
-      </div>
+        <button type="submit" [disabled]="form.invalid || loading()" class="btn btn-signal w-full">
+          {{ loading() ? 'Inscription…' : "S'inscrire" }}
+        </button>
+      </form>
 
-      @if (showSupervisorId) {
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            ID du superviseur <span class="text-gray-400 font-normal">(optionnel)</span>
-          </label>
-          <input formControlName="supervisorId" type="number" placeholder="Ex: 12"
-            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-      }
-
-      @if (error()) {
-        <p class="text-red-600 text-sm">{{ error() }}</p>
-      }
-
-      <button type="submit" [disabled]="form.invalid || loading()"
-        class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition">
-        {{ loading() ? 'Inscription...' : "S'inscrire" }}
-      </button>
-
-    </form>
-
-    <p class="text-sm text-center text-gray-500 mt-6">
-      Déjà un compte ?
-      <a routerLink="/login" class="text-blue-600 hover:underline">Se connecter</a>
-    </p>
+      <p class="mt-7 text-center text-sm text-muted">
+        Déjà un compte ?
+        <a routerLink="/login" class="font-medium text-signal hover:underline">Se connecter</a>
+      </p>
+    </div>
   </div>
 </div>

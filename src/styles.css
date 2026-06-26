@@ -1,4 +1,431 @@
-/* You can add global styles to this file, and also import other style files */
+/* ============================================================================
+   URBANALERT — "SIGNAL CONTROL ROOM" DESIGN SYSTEM
+   A dark, instrument-panel identity for a civic incident-command platform.
+   ----------------------------------------------------------------------------
+   Canvas  : near-black, faintly cool          Type : Space Grotesk + JetBrains Mono
+   Signal  : electric lime (primary action)    Data : monospace, uppercase micro-labels
+   States  : amber (warn) · red (crit) · green (ok) · cyan (info)
+   ========================================================================== */
 
 @import 'tailwindcss';
 @import 'leaflet/dist/leaflet.css';
+
+/* ---- Design tokens -------------------------------------------------------- */
+@theme {
+  /* Surfaces (deepest → raised) */
+  --color-canvas: #0b0c0e;
+  --color-canvas-2: #0f1115;
+  --color-surface: #15171c;
+  --color-surface-2: #1a1d23;
+  --color-surface-3: #21252c;
+
+  /* Lines */
+  --color-line: #262a31;
+  --color-line-soft: #1e222800;
+  --color-line-strong: #363c45;
+
+  /* Text */
+  --color-ink: #e9e9e4;
+  --color-ink-dim: #b9bec7;
+  --color-muted: #8b919c;
+  --color-faint: #5d646e;
+
+  /* Signal accent + semantic states */
+  --color-signal: #d6ff3e;
+  --color-signal-dim: #a9cc2f;
+  --color-on-signal: #0b0c0e; /* text/icon color that sits on a signal-filled surface */
+  --color-amber: #ffb020;
+  --color-crit: #ff5147;
+  --color-ok: #36d399;
+  --color-info: #4fd7d2;
+  --color-violet: #9d8cff;
+
+  /* Type */
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Radius */
+  --radius-panel: 14px;
+
+  /* Easing */
+  --ease-signal: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---- Base ----------------------------------------------------------------- */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'ss01', 'cv01';
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* faint engineering grid + corner glow so the canvas never reads as flat black */
+    background-image:
+      radial-gradient(120% 80% at 100% 0%, rgba(214, 255, 62, 0.05), transparent 55%),
+      radial-gradient(90% 60% at 0% 100%, rgba(79, 215, 210, 0.04), transparent 50%),
+      linear-gradient(to right, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: var(--color-signal);
+    color: var(--color-on-signal);
+  }
+
+  /* Slim instrument scrollbars */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #4a515c; background-clip: content-box; }
+
+  /* Inputs inherit type + dark autofill */
+  input, select, textarea, button { font-family: inherit; }
+  input:-webkit-autofill,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-ink);
+    -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+    caret-color: var(--color-ink);
+  }
+  select option { background: var(--color-surface); color: var(--color-ink); }
+}
+
+/* ---- Components ----------------------------------------------------------- */
+@layer components {
+
+  /* Panels — physical-feeling instrument bezels (border + faint top highlight) */
+  .panel {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 40%),
+      var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+  }
+  .panel-2 { background: var(--color-surface-2); }
+
+  /* Hairline divider */
+  .hairline { border-color: var(--color-line); }
+
+  /* Uppercase mono micro-label — the signature "ops readout" type */
+  .microlabel {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-faint);
+  }
+
+  /* Mono data: IDs, coordinates, timestamps, big stat numbers */
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---- Buttons ---- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.12s var(--ease-signal), background 0.15s, border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .btn-signal {
+    background: var(--color-signal);
+    color: var(--color-on-signal);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px rgba(214, 255, 62, 0.4), 0 8px 24px -10px rgba(214, 255, 62, 0.5);
+  }
+  .btn-signal:hover:not(:disabled) { background: #e3ff63; box-shadow: 0 0 0 1px rgba(214, 255, 62, 0.6), 0 10px 30px -8px rgba(214, 255, 62, 0.6); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-ink-dim);
+    border-color: var(--color-line-strong);
+  }
+  .btn-ghost:hover:not(:disabled) { background: var(--color-surface-2); color: var(--color-ink); border-color: #46505c; }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--color-crit);
+    border-color: rgba(255, 81, 71, 0.4);
+  }
+  .btn-danger:hover:not(:disabled) { background: rgba(255, 81, 71, 0.12); border-color: rgba(255, 81, 71, 0.7); }
+
+  .btn-sm { padding: 0.4rem 0.7rem; font-size: 0.78rem; border-radius: 8px; }
+
+  /* ---- Form fields ---- */
+  .field {
+    width: 100%;
+    background: var(--color-canvas-2);
+    border: 1px solid var(--color-line-strong);
+    border-radius: 10px;
+    padding: 0.6rem 0.85rem;
+    color: var(--color-ink);
+    font-size: 0.9rem;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .field::placeholder { color: var(--color-faint); }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-signal);
+    box-shadow: 0 0 0 3px rgba(214, 255, 62, 0.16);
+    background: var(--color-surface);
+  }
+  .field-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  /* ---- Chips / status pills ---- */
+  .chip {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+  }
+  .chip-neutral { background: rgba(139, 145, 156, 0.12); color: var(--color-ink-dim); border-color: rgba(139, 145, 156, 0.25); }
+  .chip-signal  { background: rgba(214, 255, 62, 0.12); color: var(--color-signal); border-color: rgba(214, 255, 62, 0.3); }
+  .chip-amber   { background: rgba(255, 176, 32, 0.12); color: var(--color-amber); border-color: rgba(255, 176, 32, 0.3); }
+  .chip-crit    { background: rgba(255, 81, 71, 0.13); color: var(--color-crit); border-color: rgba(255, 81, 71, 0.32); }
+  .chip-ok      { background: rgba(54, 211, 153, 0.12); color: var(--color-ok); border-color: rgba(54, 211, 153, 0.3); }
+  .chip-info    { background: rgba(79, 215, 210, 0.12); color: var(--color-info); border-color: rgba(79, 215, 210, 0.3); }
+
+  /* ---- Status dot with glow ---- */
+  .dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; flex: none; }
+  .dot-signal { background: var(--color-signal); box-shadow: 0 0 8px 0 rgba(214, 255, 62, 0.7); }
+  .dot-amber  { background: var(--color-amber);  box-shadow: 0 0 8px 0 rgba(255, 176, 32, 0.6); }
+  .dot-crit   { background: var(--color-crit);   box-shadow: 0 0 8px 0 rgba(255, 81, 71, 0.6); }
+  .dot-ok     { background: var(--color-ok);     box-shadow: 0 0 8px 0 rgba(54, 211, 153, 0.6); }
+  .dot-info   { background: var(--color-info);   box-shadow: 0 0 8px 0 rgba(79, 215, 210, 0.6); }
+  .dot-muted  { background: var(--color-faint); }
+
+  /* Live pulse — for the "LIVE" readout and critical alerts */
+  .pulse { animation: pulse-ring 2s var(--ease-signal) infinite; }
+
+  /* Alert banners */
+  .banner { border-radius: 12px; padding: 0.75rem 1rem; font-size: 0.85rem; border: 1px solid transparent; }
+  .banner-ok   { background: rgba(54, 211, 153, 0.08); border-color: rgba(54, 211, 153, 0.3); color: #7ee9c0; }
+  .banner-crit { background: rgba(255, 81, 71, 0.08); border-color: rgba(255, 81, 71, 0.3); color: #ff8a83; }
+  .banner-info { background: rgba(79, 215, 210, 0.07); border-color: rgba(79, 215, 210, 0.28); color: #93e7e3; }
+
+  /* Modals */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 40;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 1rem;
+    background: rgba(6, 7, 9, 0.72);
+    backdrop-filter: blur(5px);
+    overflow-y: auto;
+  }
+  .modal-card {
+    position: relative;
+    margin: 1.5rem auto;
+    width: 100%;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%),
+      var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    border-radius: 16px;
+    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8);
+  }
+  .modal-close {
+    display: grid; place-items: center;
+    height: 2rem; width: 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-line);
+    color: var(--color-muted);
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .modal-close:hover { color: var(--color-ink); background: var(--color-surface-2); border-color: var(--color-line-strong); }
+
+  /* Sidebar nav link */
+  .nav-link {
+    position: relative;
+    display: flex; align-items: center; gap: 0.65rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    color: var(--color-muted);
+    transition: color 0.15s, background 0.15s;
+  }
+  .nav-link:hover { color: var(--color-ink); background: var(--color-surface-2); }
+  .nav-link-active {
+    color: var(--color-signal);
+    background: linear-gradient(90deg, rgba(214, 255, 62, 0.1), transparent);
+  }
+  .nav-link-active::before {
+    content: '';
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 1.1rem; border-radius: 999px;
+    background: var(--color-signal);
+    box-shadow: 0 0 10px 0 rgba(214, 255, 62, 0.8);
+  }
+}
+
+/* ---- Utilities & keyframes ------------------------------------------------ */
+@layer utilities {
+  .text-glow-signal { text-shadow: 0 0 18px rgba(214, 255, 62, 0.45); }
+  .bg-signal-soft { background-color: rgba(214, 255, 62, 0.06); }
+  .grain-none { } /* placeholder hook */
+  .animate-rise { animation: rise 0.4s var(--ease-signal) both; }
+  .animate-fade { animation: fade 0.3s ease both; }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---- Leaflet, themed for the control room -------------------------------- */
+.leaflet-container {
+  background: #0f1115 !important;
+  font-family: var(--font-sans);
+}
+.leaflet-tile { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.7); }
+.leaflet-control-zoom a {
+  background: #1a1d23 !important;
+  color: #e9e9e4 !important;
+  border-color: #363c45 !important;
+}
+.leaflet-control-attribution {
+  background: rgba(11, 12, 14, 0.7) !important;
+  color: #5d646e !important;
+}
+.leaflet-control-attribution a { color: #8b919c !important; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: #1a1d23 !important;
+  color: #e9e9e4 !important;
+}
+
+/* ============================================================================
+   LIGHT THEME — "daylight ops console"
+   Activated by data-theme="light" on <html>. Because every utility and
+   component class resolves color through a CSS variable, overriding the token
+   values below re-themes the entire app. The rules after the token block only
+   re-tune effects that are dark-native (glows, textures, map, banner text).
+   ========================================================================== */
+:root[data-theme='light'] {
+  /* Surfaces — warm bone paper rising to white cards */
+  --color-canvas: #f4f1ea;
+  --color-canvas-2: #ece8df;
+  --color-surface: #ffffff;
+  --color-surface-2: #f3f0e8;
+  --color-surface-3: #e7e2d6;
+
+  /* Lines */
+  --color-line: #e4dfd2;
+  --color-line-soft: #00000000;
+  --color-line-strong: #cdc6b6;
+
+  /* Text — warm ink */
+  --color-ink: #1b1c19;
+  --color-ink-dim: #3e423b;
+  --color-muted: #6c6f64;
+  --color-faint: #9a9b8d;
+
+  /* Accent + semantic states, deepened for contrast on a light canvas */
+  --color-signal: #4d7c0f;
+  --color-signal-dim: #3f6b0a;
+  --color-on-signal: #ffffff;
+  --color-amber: #b45309;
+  --color-crit: #c92a2a;
+  --color-ok: #15803d;
+  --color-info: #0e7490;
+  --color-violet: #6d5bd0;
+}
+
+/* Daylight canvas texture: faint ink grid + a soft warm wash (no neon glow) */
+:root[data-theme='light'] body {
+  background-image:
+    radial-gradient(120% 80% at 100% 0%, rgba(77, 124, 15, 0.05), transparent 55%),
+    radial-gradient(90% 60% at 0% 100%, rgba(14, 116, 144, 0.04), transparent 50%),
+    linear-gradient(to right, rgba(27, 28, 25, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(27, 28, 25, 0.035) 1px, transparent 1px);
+}
+
+/* Soften the dark-native glows into restrained daylight shadows */
+:root[data-theme='light'] .btn-signal {
+  box-shadow: 0 1px 2px rgba(27, 28, 25, 0.12), 0 6px 18px -10px rgba(77, 124, 15, 0.5);
+}
+:root[data-theme='light'] .btn-signal:hover:not(:disabled) {
+  background: #5a9112;
+  box-shadow: 0 1px 2px rgba(27, 28, 25, 0.16), 0 8px 22px -8px rgba(77, 124, 15, 0.55);
+}
+:root[data-theme='light'] .btn-ghost:hover:not(:disabled) { border-color: var(--color-line-strong); }
+:root[data-theme='light'] .field:focus { box-shadow: 0 0 0 3px rgba(77, 124, 15, 0.18); }
+
+:root[data-theme='light'] .dot-signal { box-shadow: 0 0 6px 0 rgba(77, 124, 15, 0.4); }
+:root[data-theme='light'] .dot-amber,
+:root[data-theme='light'] .dot-crit,
+:root[data-theme='light'] .dot-ok,
+:root[data-theme='light'] .dot-info { box-shadow: none; }
+
+:root[data-theme='light'] .nav-link-active {
+  background: linear-gradient(90deg, rgba(77, 124, 15, 0.1), transparent);
+}
+:root[data-theme='light'] .nav-link-active::before { box-shadow: 0 0 6px 0 rgba(77, 124, 15, 0.45); }
+
+:root[data-theme='light'] .modal-card { box-shadow: 0 24px 60px -22px rgba(27, 28, 25, 0.28); }
+:root[data-theme='light'] .text-glow-signal { text-shadow: none; }
+:root[data-theme='light'] .bg-signal-soft { background-color: rgba(77, 124, 15, 0.08); }
+
+/* Banner text needs readable dark ink on the pale tints */
+:root[data-theme='light'] .banner-ok   { color: #15803d; }
+:root[data-theme='light'] .banner-crit { color: #b42318; }
+:root[data-theme='light'] .banner-info { color: #0e7490; }
+
+/* Leaflet: drop the dark inversion, restore a light map chrome */
+:root[data-theme='light'] .leaflet-container { background: #e7e2d6 !important; }
+:root[data-theme='light'] .leaflet-tile { filter: none !important; }
+:root[data-theme='light'] .leaflet-control-zoom a {
+  background: #ffffff !important;
+  color: #1b1c19 !important;
+  border-color: #cdc6b6 !important;
+}
+:root[data-theme='light'] .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.78) !important;
+  color: #6c6f64 !important;
+}
+:root[data-theme='light'] .leaflet-control-attribution a { color: #3e423b !important; }
+:root[data-theme='light'] .leaflet-popup-content-wrapper,
+:root[data-theme='light'] .leaflet-popup-tip {
+  background: #ffffff !important;
+  color: #1b1c19 !important;
+}

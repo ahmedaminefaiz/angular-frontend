@@ -1,43 +1,39 @@
-<div class="space-y-4">
-  <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-100 bg-gradient-to-r from-teal-50 to-white p-5 shadow-sm">
-    <div>
-      <h2 class="text-xl font-semibold text-slate-900">Espace citoyen</h2>
-      <p class="text-sm text-slate-600">Gestion des signalements et suivi d'intervention.</p>
+<div class="animate-fade space-y-5">
+
+  <!-- Header -->
+  <div class="panel flex flex-wrap items-center justify-between gap-4 overflow-hidden p-6">
+    <div class="relative">
+      <p class="microlabel mb-2">Espace citoyen</p>
+      <h2 class="text-2xl font-bold tracking-tight">Vos signalements urbains</h2>
+      <p class="mt-1 text-sm text-muted">Signalez un incident et suivez son intervention en temps réel.</p>
     </div>
-    <button
-      class="inline-flex items-center rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
-      (click)="openCreateForm()"
-    >
-      Signale un incident urbain
+    <button class="btn btn-signal" (click)="openCreateForm()">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Signaler un incident
     </button>
   </div>
 
-  <!-- Stats summary -->
-  <div class="grid grid-cols-3 gap-3">
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 text-center">
-      <p class="text-2xl font-bold text-teal-600">{{ myAlertsPage().totalElements }}</p>
-      <p class="text-xs text-slate-500 mt-1">Mes signalements</p>
+  <!-- Stats -->
+  <div class="grid grid-cols-3 gap-4">
+    <div class="panel p-5">
+      <p class="microlabel">Mes signalements</p>
+      <p class="mono mt-2 text-3xl font-bold text-ink">{{ myAlertsPage().totalElements }}</p>
     </div>
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 text-center">
-      <p class="text-2xl font-bold text-yellow-500">{{ myAlertsInProgress }}</p>
-      <p class="text-xs text-slate-500 mt-1">En cours</p>
+    <div class="panel p-5">
+      <p class="microlabel">En cours</p>
+      <p class="mono mt-2 text-3xl font-bold text-amber">{{ myAlertsInProgress }}</p>
     </div>
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 text-center">
-      <p class="text-2xl font-bold text-emerald-500">{{ myAlertsResolved }}</p>
-      <p class="text-xs text-slate-500 mt-1">Résolus</p>
+    <div class="panel p-5">
+      <p class="microlabel">Résolus</p>
+      <p class="mono mt-2 text-3xl font-bold text-ok">{{ myAlertsResolved }}</p>
     </div>
   </div>
 
   @if (successMessage()) {
-    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-      {{ successMessage() }}
-    </div>
+    <div class="banner banner-ok">{{ successMessage() }}</div>
   }
-
   @if (pageErrorMessage() && !hasOpenModal) {
-    <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-      {{ pageErrorMessage() }}
-    </div>
+    <div class="banner banner-crit">{{ pageErrorMessage() }}</div>
   }
 
   @if (currentTab() === 'alerts' || currentTab() === 'my-alerts') {

@@ -40,15 +40,15 @@ export class AgentDashboardComponent implements OnInit {
 
   statusClass(status: InterventionStatus): string {
     const map: Record<InterventionStatus, string> = {
-      AFFECTEE: 'bg-blue-100 text-blue-700',
-      EN_COURS: 'bg-yellow-100 text-yellow-700',
-      SUSPENDUE: 'bg-orange-100 text-orange-700',
-      EN_ATTENTE_AUTRE_EQUIPE: 'bg-purple-100 text-purple-700',
-      RESOLUE: 'bg-green-100 text-green-700',
-      PARTIELLEMENT_RESOLUE: 'bg-teal-100 text-teal-700',
-      ECHEC_INTERVENTION: 'bg-red-100 text-red-700',
-      CLOTUREE: 'bg-gray-200 text-gray-700'
+      AFFECTEE: 'chip-info',
+      EN_COURS: 'chip-amber',
+      SUSPENDUE: 'chip-amber',
+      EN_ATTENTE_AUTRE_EQUIPE: 'chip-neutral',
+      RESOLUE: 'chip-ok',
+      PARTIELLEMENT_RESOLUE: 'chip-ok',
+      ECHEC_INTERVENTION: 'chip-crit',
+      CLOTUREE: 'chip-neutral'
     };
-    return map[status] ?? 'bg-gray-100 text-gray-600';
+    return map[status] ?? 'chip-neutral';
   }
 }

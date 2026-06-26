@@ -1,45 +1,54 @@
-<div class="flex h-screen bg-slate-100 overflow-hidden">
+<div class="flex h-screen overflow-hidden">
 
   <!-- Mobile backdrop -->
   @if (sidebarOpen) {
-    <div
-      class="fixed inset-0 bg-black/40 z-20 md:hidden"
-      (click)="toggleSidebar()">
-    </div>
+    <div class="fixed inset-0 z-20 bg-black/60 backdrop-blur-sm md:hidden" (click)="toggleSidebar()"></div>
   }
 
   <!-- Sidebar -->
   <aside
-    class="fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 shadow-lg flex flex-col transition-transform duration-300 md:static md:z-auto md:translate-x-0 md:flex-shrink-0"
+    class="fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-line bg-canvas-2 transition-transform duration-300 md:static md:z-auto md:translate-x-0 md:flex-shrink-0"
     [ngClass]="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
-    <!-- Logo + close button -->
-    <div class="px-6 py-5 border-b border-slate-700 flex items-center justify-between">
-      <div>
-        <span class="text-xl font-bold text-teal-300 tracking-tight">UrbanAlert</span>
-        <p class="text-xs text-slate-400 mt-0.5">{{ roleLabel }}</p>
+    <!-- Brand -->
+    <div class="flex items-center justify-between border-b border-line px-5 py-5">
+      <div class="flex items-center gap-3">
+        <!-- signal mark -->
+        <span class="relative grid h-9 w-9 place-items-center rounded-lg border border-line-strong bg-surface">
+          <span class="h-3 w-3 rotate-45 rounded-[2px] bg-signal" style="box-shadow:0 0 12px 0 rgba(214,255,62,.8)"></span>
+        </span>
+        <div class="leading-tight">
+          <span class="text-[1.05rem] font-bold tracking-tight text-ink">Urban<span class="text-signal">Alert</span></span>
+          <p class="mt-1 truncate text-xs text-muted">{{ displayName }}</p>
+        </div>
       </div>
-      <button
-        class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-        (click)="toggleSidebar()">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+      <button class="p-1.5 text-muted transition-colors hover:text-ink md:hidden" (click)="toggleSidebar()">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
 
+    <!-- System status readout -->
+    <div class="mx-3 mt-4 flex items-center justify-between rounded-lg border border-line bg-surface/60 px-3 py-2">
+      <span class="flex items-center gap-2">
+        <span class="dot dot-signal pulse"></span>
+        <span class="microlabel" style="color:var(--color-ink-dim)">Système en ligne</span>
+      </span>
+      <span class="mono text-[0.65rem] text-faint">v1.0</span>
+    </div>
+
     <!-- Navigation -->
-    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+      <p class="microlabel px-2 pb-2">Navigation</p>
       @for (item of navItems; track item.route) {
         <a
           [routerLink]="item.route"
-          routerLinkActive="bg-teal-500/20 text-teal-300 font-semibold"
+          routerLinkActive="nav-link-active"
           [routerLinkActiveOptions]="{ exact: true }"
           (click)="sidebarOpen = false"
-          class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+          class="nav-link">
           <span class="flex-1">{{ item.label }}</span>
           @if (isNotifRoute(item) && unreadCount > 0) {
-            <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-500 px-1 text-xs font-bold text-white">
+            <span class="mono flex h-5 min-w-5 items-center justify-center rounded-full bg-signal px-1.5 text-[0.65rem] font-bold text-on-signal">
               {{ unreadCount > 99 ? '99+' : unreadCount }}
             </span>
           }
@@ -48,59 +57,47 @@
     </nav>
 
     <!-- Logout -->
-    <div class="px-3 py-4 border-t border-slate-700">
-      <button
-        (click)="logout()"
-        class="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm text-rose-300 hover:bg-rose-500/10 hover:text-rose-200 transition-colors font-medium">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-        </svg>
-        Se déconnecter
+    <div class="border-t border-line px-3 py-4">
+      <button (click)="logout()" class="nav-link w-full text-crit hover:bg-[rgba(255,81,71,0.1)] hover:text-crit">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span class="flex-1 text-left">Se déconnecter</span>
       </button>
     </div>
-
   </aside>
 
   <!-- Main area -->
-  <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+  <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
 
     <!-- Topbar -->
-    <header class="bg-white border-b border-slate-200 px-4 md:px-6 py-4 flex items-center gap-3 flex-shrink-0">
-      <button
-        class="md:hidden p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-        (click)="toggleSidebar()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
+    <header class="flex flex-shrink-0 items-center gap-3 border-b border-line bg-canvas-2/80 px-4 py-3.5 backdrop-blur md:px-6">
+      <button class="p-1.5 text-muted transition-colors hover:text-ink md:hidden" (click)="toggleSidebar()">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
-      <h1 class="text-base font-semibold text-slate-800 flex-1">UrbanAlert</h1>
-      <span class="text-sm font-semibold text-teal-700 bg-teal-50 px-3 py-1 rounded-full hidden sm:block">
-        {{ roleLabel }}
-      </span>
+      <div class="flex flex-1 items-center gap-2">
+        <span class="dot dot-signal pulse"></span>
+        <span class="microlabel">Centre de supervision</span>
+      </div>
+      <app-theme-toggle />
+      <span class="chip chip-signal">{{ roleLabel }}</span>
     </header>
 
     <!-- Page content -->
     <main class="flex-1 overflow-y-auto p-4 md:p-6">
       <router-outlet />
     </main>
-
   </div>
-
 </div>
 
 <!-- Toast: real-time notification -->
 @if (toast) {
-  <div class="fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-3 rounded-xl border border-teal-200 bg-white px-4 py-3.5 shadow-lg">
-    <div class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-teal-500"></div>
-    <p class="flex-1 text-sm text-slate-700">{{ toast.message }}</p>
-    <button
-      type="button"
-      class="shrink-0 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-      (click)="dismissToast()">
-      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-      </svg>
+  <div class="animate-rise panel fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-3 px-4 py-3.5 shadow-2xl">
+    <span class="dot dot-signal pulse mt-1.5"></span>
+    <div class="flex-1">
+      <p class="microlabel mb-1" style="color:var(--color-signal)">Notification</p>
+      <p class="text-sm text-ink-dim">{{ toast.message }}</p>
+    </div>
+    <button type="button" class="shrink-0 rounded p-1 text-faint transition-colors hover:bg-surface-2 hover:text-ink" (click)="dismissToast()">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
   </div>
 }

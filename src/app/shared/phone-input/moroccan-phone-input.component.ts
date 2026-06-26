@@ -12,8 +12,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     }
   ],
   template: `
-    <div class="flex overflow-hidden rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-      <span class="flex items-center gap-1.5 border-r border-gray-300 bg-gray-50 px-3 text-sm text-gray-600 select-none whitespace-nowrap">
+    <div class="flex overflow-hidden rounded-[10px] border border-line-strong bg-canvas-2 transition-colors focus-within:border-signal focus-within:shadow-[0_0_0_3px_rgba(214,255,62,0.16)]">
+      <span class="mono flex select-none items-center gap-1.5 whitespace-nowrap border-r border-line-strong bg-surface px-3 text-sm text-muted">
         🇲🇦 +212
       </span>
       <input
@@ -25,7 +25,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
         [disabled]="isDisabled"
         (input)="onInput($event)"
         (blur)="onTouched()"
-        class="min-w-0 flex-1 bg-white px-3 py-2 text-sm outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
+        class="mono min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-ink outline-none placeholder:text-faint disabled:cursor-not-allowed disabled:opacity-50"
       />
     </div>
   `
