@@ -110,7 +110,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
         ];
       case 'SUPER_AGENT':
         return [
-          { label: 'Tableau de bord', route: '/dashboard/super-agent' },
+          { label: 'KPIs & Performance', route: '/dashboard/super-agent/kpi' },
           { label: 'Agents en attente', route: '/dashboard/super-agent/pending-agents' },
           { label: 'Signalements à qualifier', route: '/dashboard/super-agent/alerts' },
           { label: 'Mes problèmes', route: '/dashboard/super-agent/problems' }
