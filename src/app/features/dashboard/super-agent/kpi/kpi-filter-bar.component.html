@@ -1,0 +1,55 @@
+<div class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
+
+  <!-- Période -->
+  <div class="flex items-center gap-1.5">
+    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide mr-1">Période</span>
+    @for (p of periods; track p.value) {
+      <button
+        type="button"
+        (click)="selectPeriod(p.value)"
+        [class]="selectedPeriod === p.value
+          ? 'rounded-lg px-3 py-1.5 text-xs font-semibold bg-indigo-600 text-white shadow-sm'
+          : 'rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors'">
+        {{ p.label }}
+      </button>
+    }
+  </div>
+
+  <div class="h-5 w-px bg-slate-200 hidden sm:block"></div>
+
+  <!-- Agent -->
+  <div class="flex items-center gap-2">
+    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Agent</span>
+    <select
+      [(ngModel)]="selectedAgentId"
+      (ngModelChange)="onAgentChange()"
+      class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+      <option [ngValue]="null">Tous les agents</option>
+      @for (a of agents; track a.id) {
+        <option [ngValue]="a.id">{{ a.prenom }} {{ a.nom }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Spacer -->
+  <div class="flex-1"></div>
+
+  <!-- Last refresh + button -->
+  <div class="flex items-center gap-3">
+    @if (lastRefresh) {
+      <span class="text-xs text-slate-400 hidden sm:block">{{ lastRefreshLabel }}</span>
+    }
+    <button
+      type="button"
+      (click)="refreshClick.emit()"
+      [disabled]="loading"
+      class="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors">
+      <svg class="h-3.5 w-3.5" [class.animate-spin]="loading" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      Actualiser
+    </button>
+  </div>
+
+</div>

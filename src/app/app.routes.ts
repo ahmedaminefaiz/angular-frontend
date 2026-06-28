@@ -75,6 +75,13 @@ export const routes: Routes = [
               )
           },
           {
+            path: 'kpi',
+            loadComponent: () =>
+              import('./features/dashboard/super-agent/kpi/kpi-dashboard.component').then(
+                m => m.KpiDashboardComponent
+              )
+          },
+          {
             path: 'pending-agents',
             loadComponent: () =>
               import('./features/dashboard/super-agent/pending-agents/pending-agents.component').then(
