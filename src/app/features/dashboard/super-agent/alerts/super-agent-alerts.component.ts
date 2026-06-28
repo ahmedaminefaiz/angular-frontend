@@ -23,7 +23,7 @@ export class SuperAgentAlertsComponent implements OnInit {
   readonly error = signal('');
   readonly successMessage = signal('');
 
-  readonly selectedIds = signal<Set<number>>(new Set());
+  readonly selectedMap = signal<Map<number, AlertResponse>>(new Map());
   readonly expandedSimilarId = signal<number | null>(null);
   readonly showQualifyForm = signal(false);
   readonly agents = signal<UserSummaryResponse[]>([]);
@@ -51,7 +51,7 @@ export class SuperAgentAlertsComponent implements OnInit {
     this.alertsService.getUnqualifiedAlerts(page).subscribe({
       next: (data) => {
         this.alertsPage.set(data);
-        this.selectedIds.set(new Set());
+        this.selectedMap.set(new Map());
         this.loading.set(false);
       },
       error: () => {
@@ -72,19 +72,24 @@ export class SuperAgentAlertsComponent implements OnInit {
   }
 
   toggleSelect(id: number): void {
-    this.selectedIds.update(set => {
-      const next = new Set(set);
-      next.has(id) ? next.delete(id) : next.add(id);
+    this.selectedMap.update(map => {
+      const next = new Map(map);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        const alert = this.alertsPage().content.find(a => a.id === id);
+        if (alert) next.set(id, alert);
+      }
       return next;
     });
   }
 
   selectAll(): void {
-    this.selectedIds.set(new Set(this.filteredAlerts.map(a => a.id)));
+    this.selectedMap.set(new Map(this.filteredAlerts.map(a => [a.id, a])));
   }
 
   clearSelection(): void {
-    this.selectedIds.set(new Set());
+    this.selectedMap.set(new Map());
   }
 
   toggleSimilar(alertId: number): void {
@@ -92,15 +97,15 @@ export class SuperAgentAlertsComponent implements OnInit {
   }
 
   includeSimilarAlert(alert: AlertResponse): void {
-    this.selectedIds.update(set => {
-      const next = new Set(set);
-      next.add(alert.id);
+    this.selectedMap.update(map => {
+      const next = new Map(map);
+      next.set(alert.id, alert);
       return next;
     });
   }
 
   get selectedAlerts(): AlertResponse[] {
-    return this.alertsPage().content.filter(a => this.selectedIds().has(a.id));
+    return Array.from(this.selectedMap().values());
   }
 
   openQualifyForm(): void {

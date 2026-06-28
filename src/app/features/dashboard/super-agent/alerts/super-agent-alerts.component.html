@@ -6,9 +6,9 @@
       <p class="microlabel mb-2">Triage · qualification</p>
       <h1 class="text-2xl font-bold tracking-tight text-ink">Signalements à qualifier</h1>
     </div>
-    @if (selectedIds().size > 0) {
+    @if (selectedMap().size > 0) {
       <div class="flex items-center gap-3">
-        <span class="mono text-xs text-signal">{{ selectedIds().size }} SÉLECTIONNÉ(S)</span>
+        <span class="mono text-xs text-signal">{{ selectedMap().size }} SÉLECTIONNÉ(S)</span>
         <button (click)="clearSelection()" class="text-sm text-muted underline hover:text-ink">Désélectionner</button>
         <button (click)="openQualifyForm()" class="btn btn-signal btn-sm">Créer un problème</button>
       </div>
@@ -49,9 +49,9 @@
         </thead>
         <tbody>
           @for (alert of filteredAlerts; track alert.id) {
-            <tr class="border-b border-line/60 transition-colors" [class.bg-signal-soft]="selectedIds().has(alert.id)" [class.hover:bg-surface-2]="!selectedIds().has(alert.id)">
+            <tr class="border-b border-line/60 transition-colors" [class.bg-signal-soft]="selectedMap().has(alert.id)" [class.hover:bg-surface-2]="!selectedMap().has(alert.id)">
               <td class="px-4 py-3">
-                <input type="checkbox" [checked]="selectedIds().has(alert.id)" (change)="toggleSelect(alert.id)" class="h-4 w-4 accent-[var(--color-signal)]" />
+                <input type="checkbox" [checked]="selectedMap().has(alert.id)" (change)="toggleSelect(alert.id)" class="h-4 w-4 accent-[var(--color-signal)]" />
               </td>
               <td class="mono px-4 py-3 text-sm text-faint">#A-{{ alert.id }}</td>
               <td class="max-w-xs px-4 py-3 text-sm font-medium text-ink">
