@@ -46,7 +46,7 @@ export class KpiDashboardComponent implements OnInit {
   private readonly refresh$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.userMgmtService.getMyAgents()
+    this.userMgmtService.getActiveAgents()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: (list) => this.agents.set(list), error: () => {} });
 

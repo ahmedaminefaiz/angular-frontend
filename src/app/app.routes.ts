@@ -67,7 +67,13 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['SUPER_AGENT'] },
         children: [
-          { path: '', redirectTo: 'kpi', pathMatch: 'full' },
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/dashboard/super-agent/super-agent-dashboard.component').then(
+                m => m.SuperAgentDashboardComponent
+              )
+          },
           {
             path: 'kpi',
             loadComponent: () =>
