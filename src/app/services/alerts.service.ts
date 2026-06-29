@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import {
   AddMediaRequest,
   AlertResponse,
+  AlertSimilarityResponse,
   ApiPage,
   CreateAlertRequest,
   UpdateAlertRequest
@@ -65,9 +66,8 @@ export class AlertsService {
     return this.http.get<ApiPage<AlertResponse>>(`${this.base}/unqualified`, { params });
   }
 
-  getSimilarAlerts(alertId: number, radiusMeters = 300): Observable<AlertResponse[]> {
-    const params = new HttpParams().set('radius', String(radiusMeters));
-    return this.http.get<AlertResponse[]>(`${this.base}/${alertId}/similar`, { params });
+  getSimilarAlerts(alertId: number): Observable<AlertSimilarityResponse[]> {
+    return this.http.get<AlertSimilarityResponse[]>(`${this.base}/${alertId}/similaires`);
   }
 
   private createPageParams(page: number, size: number): HttpParams {

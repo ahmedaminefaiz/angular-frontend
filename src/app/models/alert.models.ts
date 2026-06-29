@@ -78,3 +78,7 @@ export interface AddMediaRequest {
   mediaUrl: string;
   description?: string;
 }
+
+export interface AlertSimilarityResponse extends AlertResponse {
+  score: number;
+}
