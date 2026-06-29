@@ -5,6 +5,7 @@ import { ProblemKpi } from '../../../../models/kpi.models';
   selector: 'app-kpi-problem-section',
   standalone: true,
   imports: [],
+  host: { class: 'block h-full' },
   templateUrl: './kpi-problem-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

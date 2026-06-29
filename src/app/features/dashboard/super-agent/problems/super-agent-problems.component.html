@@ -43,7 +43,7 @@
               </div>
             </div>
 
-            <div class="flex shrink-0 flex-wrap items-center gap-2">
+            <div class="flex shrink-0 flex-wrap items-center justify-start gap-2 sm:justify-end">
               @if (nextStatuses(problem.status).length > 0) {
                 <select (change)="changeStatus(problem, $any($event.target).value); $any($event.target).value = ''" class="field btn-sm max-w-[11rem] py-1.5">
                   <option value="">Changer statut</option>
