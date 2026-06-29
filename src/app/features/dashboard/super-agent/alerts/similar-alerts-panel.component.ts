@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, Output, EventEmitter, signal } from '@angular/core';
 import { SlicePipe } from '@angular/common';
-import { AlertResponse, AlertSimilarityResponse } from '../../../../models/alert.models';
+import { AlertSimilarityResponse } from '../../../../models/alert.models';
+
 import { AlertsService } from '../../../../services/alerts.service';
 
 @Component({
