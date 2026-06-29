@@ -241,30 +241,30 @@ export class InterventionListComponent implements OnInit, OnDestroy {
 
   getStatusClass(status: InterventionStatus): string {
     const classes: Record<InterventionStatus, string> = {
-      AFFECTEE: 'bg-blue-100 text-blue-700',
-      EN_COURS: 'bg-yellow-100 text-yellow-700',
-      SUSPENDUE: 'bg-orange-100 text-orange-700',
-      EN_ATTENTE_AUTRE_EQUIPE: 'bg-purple-100 text-purple-700',
-      RESOLUE: 'bg-green-100 text-green-700',
-      PARTIELLEMENT_RESOLUE: 'bg-emerald-100 text-emerald-700',
-      ECHEC_INTERVENTION: 'bg-red-100 text-red-700',
-      CLOTUREE: 'bg-gray-100 text-gray-500'
+      AFFECTEE: 'chip-info',
+      EN_COURS: 'chip-amber',
+      SUSPENDUE: 'chip-amber',
+      EN_ATTENTE_AUTRE_EQUIPE: 'chip-neutral',
+      RESOLUE: 'chip-ok',
+      PARTIELLEMENT_RESOLUE: 'chip-ok',
+      ECHEC_INTERVENTION: 'chip-crit',
+      CLOTUREE: 'chip-neutral'
     };
-    return classes[status] || 'bg-gray-100 text-gray-700';
+    return classes[status] || 'chip-neutral';
   }
 
   getStatusDot(status: InterventionStatus): string {
     const colors: Record<InterventionStatus, string> = {
-      AFFECTEE: 'bg-blue-500',
-      EN_COURS: 'bg-yellow-500',
-      SUSPENDUE: 'bg-orange-500',
-      EN_ATTENTE_AUTRE_EQUIPE: 'bg-purple-500',
-      RESOLUE: 'bg-green-500',
-      PARTIELLEMENT_RESOLUE: 'bg-emerald-500',
-      ECHEC_INTERVENTION: 'bg-red-500',
-      CLOTUREE: 'bg-gray-400'
+      AFFECTEE: 'dot-info',
+      EN_COURS: 'dot-amber',
+      SUSPENDUE: 'dot-amber',
+      EN_ATTENTE_AUTRE_EQUIPE: 'dot-muted',
+      RESOLUE: 'dot-ok',
+      PARTIELLEMENT_RESOLUE: 'dot-ok',
+      ECHEC_INTERVENTION: 'dot-crit',
+      CLOTUREE: 'dot-muted'
     };
-    return colors[status] || 'bg-gray-400';
+    return colors[status] || 'dot-muted';
   }
 
   truncate(text: string | undefined, max: number): string {

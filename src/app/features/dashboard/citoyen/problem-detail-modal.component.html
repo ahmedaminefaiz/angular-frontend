@@ -1,42 +1,59 @@
-<div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="close.emit()">
-  <div class="mx-auto mt-6 max-h-[88vh] max-w-4xl overflow-auto rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
-    <div class="mb-4 flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-slate-900">Détails Problem #{{ problem.id }}</h3>
-      <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="close.emit()">X</button>
+<div class="modal-backdrop" (click)="close.emit()">
+  <div class="modal-card animate-rise max-w-3xl" (click)="$event.stopPropagation()">
+
+    <div class="flex items-center justify-between border-b border-line px-6 py-4">
+      <div>
+        <p class="microlabel mb-1">Problème</p>
+        <h3 class="mono text-lg font-bold text-ink">#P-{{ problem.id }}</h3>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
     </div>
-    <div class="grid gap-2 md:grid-cols-2">
-      <p><strong>Title:</strong> {{ problem.title }}</p>
-      <p><strong>Status:</strong> {{ problem.status }}</p>
-      <p class="md:col-span-2"><strong>Description:</strong> {{ problem.description }}</p>
-      <p><strong>Created at:</strong> {{ problem.createdAt | date:'short' }}</p>
-      <p><strong>Updated at:</strong> {{ problem.updatedAt | date:'short' }}</p>
-    </div>
-    <div class="mt-4 rounded-lg border border-slate-200 p-3">
-      <p class="mb-2 text-sm font-semibold text-slate-700">Criticité</p>
-      @if (problem.criticality) {
-        <p class="text-sm text-slate-800 font-medium">{{ problem.criticality.name }}</p>
-        <p class="text-xs text-slate-500 mt-0.5">Délai d'intervention : {{ problem.criticality.delayHours }}h</p>
-      } @else {
-        <p class="text-sm text-slate-400 italic">Non définie</p>
-      }
-    </div>
-    <div class="mt-4 rounded-lg border border-slate-200 p-3">
-      <p class="mb-2 text-sm font-semibold text-slate-700">Status history</p>
-      @if (!problem.statusHistory.length) {
-        <p class="text-sm text-slate-400">Aucun historique.</p>
-      } @else {
-        <ul class="space-y-2">
-          @for (entry of problem.statusHistory; track entry.id) {
-            <li class="rounded border border-slate-200 p-2 text-sm">
-              <p class="font-medium text-slate-800">{{ entry.previousStatus }} -> {{ entry.newStatus }}</p>
-              <p class="text-xs text-slate-500">{{ entry.changedBy }} - {{ entry.changedAt | date:'short' }}</p>
-              @if (entry.comment) {
-                <p class="mt-1 text-xs text-slate-600">{{ entry.comment }}</p>
-              }
-            </li>
-          }
-        </ul>
-      }
+
+    <div class="max-h-[72vh] overflow-y-auto p-6">
+      <h4 class="text-xl font-bold tracking-tight text-ink">{{ problem.title }}</h4>
+      <span class="chip mt-2"
+        [class.chip-info]="problem.status === 'NEW'" [class.chip-amber]="problem.status === 'IN_PROGRESS'"
+        [class.chip-ok]="problem.status === 'RESOLVED'" [class.chip-crit]="problem.status === 'REJECTED'">{{ problem.status }}</span>
+
+      <p class="mt-4 text-sm leading-relaxed text-ink-dim">{{ problem.description }}</p>
+
+      <dl class="mt-5 grid gap-x-6 gap-y-3 border-t border-line pt-5 sm:grid-cols-2">
+        <div><dt class="microlabel mb-1">Créé le</dt><dd class="mono text-sm text-ink-dim">{{ problem.createdAt | date:'short' }}</dd></div>
+        <div><dt class="microlabel mb-1">Mis à jour</dt><dd class="mono text-sm text-ink-dim">{{ problem.updatedAt | date:'short' }}</dd></div>
+      </dl>
+
+      <!-- Criticality -->
+      <div class="panel-2 mt-5 rounded-lg border border-line p-4">
+        <p class="microlabel mb-2">Criticité</p>
+        @if (problem.criticality) {
+          <p class="text-sm font-medium text-ink">{{ problem.criticality.name }}</p>
+          <p class="mono mt-0.5 text-xs text-faint">Délai d'intervention : {{ problem.criticality.delayHours }}h</p>
+        } @else {
+          <p class="text-sm italic text-faint">Non définie</p>
+        }
+      </div>
+
+      <!-- Status history -->
+      <div class="mt-5">
+        <p class="microlabel mb-3">Historique des statuts</p>
+        @if (!problem.statusHistory.length) {
+          <p class="text-sm text-faint">Aucun historique.</p>
+        } @else {
+          <ul class="space-y-2">
+            @for (entry of problem.statusHistory; track entry.id) {
+              <li class="panel-2 rounded-lg border border-line p-3">
+                <p class="mono text-sm font-medium text-ink">{{ entry.previousStatus }} → {{ entry.newStatus }}</p>
+                <p class="mono mt-0.5 text-[0.7rem] text-faint">{{ entry.changedBy }} · {{ entry.changedAt | date:'short' }}</p>
+                @if (entry.comment) {
+                  <p class="mt-1.5 text-xs text-muted">{{ entry.comment }}</p>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
     </div>
   </div>
 </div>

@@ -23,7 +23,7 @@ export class SuperAgentAlertsComponent implements OnInit {
   readonly error = signal('');
   readonly successMessage = signal('');
 
-  readonly selectedIds = signal<Set<number>>(new Set());
+  readonly selectedMap = signal<Map<number, AlertResponse>>(new Map());
   readonly expandedSimilarId = signal<number | null>(null);
   readonly showQualifyForm = signal(false);
   readonly agents = signal<UserSummaryResponse[]>([]);
@@ -51,7 +51,7 @@ export class SuperAgentAlertsComponent implements OnInit {
     this.alertsService.getUnqualifiedAlerts(page).subscribe({
       next: (data) => {
         this.alertsPage.set(data);
-        this.selectedIds.set(new Set());
+        this.selectedMap.set(new Map());
         this.loading.set(false);
       },
       error: () => {
@@ -72,19 +72,24 @@ export class SuperAgentAlertsComponent implements OnInit {
   }
 
   toggleSelect(id: number): void {
-    this.selectedIds.update(set => {
-      const next = new Set(set);
-      next.has(id) ? next.delete(id) : next.add(id);
+    this.selectedMap.update(map => {
+      const next = new Map(map);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        const alert = this.alertsPage().content.find(a => a.id === id);
+        if (alert) next.set(id, alert);
+      }
       return next;
     });
   }
 
   selectAll(): void {
-    this.selectedIds.set(new Set(this.filteredAlerts.map(a => a.id)));
+    this.selectedMap.set(new Map(this.filteredAlerts.map(a => [a.id, a])));
   }
 
   clearSelection(): void {
-    this.selectedIds.set(new Set());
+    this.selectedMap.set(new Map());
   }
 
   toggleSimilar(alertId: number): void {
@@ -92,15 +97,15 @@ export class SuperAgentAlertsComponent implements OnInit {
   }
 
   includeSimilarAlert(alert: AlertResponse): void {
-    this.selectedIds.update(set => {
-      const next = new Set(set);
-      next.add(alert.id);
+    this.selectedMap.update(map => {
+      const next = new Map(map);
+      next.set(alert.id, alert);
       return next;
     });
   }
 
   get selectedAlerts(): AlertResponse[] {
-    return this.alertsPage().content.filter(a => this.selectedIds().has(a.id));
+    return Array.from(this.selectedMap().values());
   }
 
   openQualifyForm(): void {
@@ -126,22 +131,22 @@ export class SuperAgentAlertsComponent implements OnInit {
 
   statusClass(status: string): string {
     const map: Record<string, string> = {
-      NEW: 'bg-blue-100 text-blue-700',
-      IN_PROGRESS: 'bg-amber-100 text-amber-700',
-      RESOLVED: 'bg-green-100 text-green-700',
-      REJECTED: 'bg-red-100 text-red-700'
+      NEW: 'chip-info',
+      IN_PROGRESS: 'chip-amber',
+      RESOLVED: 'chip-ok',
+      REJECTED: 'chip-crit'
     };
-    return map[status] ?? 'bg-gray-100 text-gray-700';
+    return map[status] ?? 'chip-neutral';
   }
 
   priorityClass(priority: string): string {
     const map: Record<string, string> = {
-      LOW: 'bg-gray-100 text-gray-600',
-      MEDIUM: 'bg-blue-100 text-blue-700',
-      HIGH: 'bg-amber-100 text-amber-700',
-      CRITICAL: 'bg-red-100 text-red-700'
+      LOW: 'chip-ok',
+      MEDIUM: 'chip-info',
+      HIGH: 'chip-amber',
+      CRITICAL: 'chip-crit'
     };
-    return map[priority] ?? 'bg-gray-100 text-gray-600';
+    return map[priority] ?? 'chip-neutral';
   }
 
   private flash(msg: string): void {

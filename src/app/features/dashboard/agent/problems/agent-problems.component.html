@@ -1,119 +1,85 @@
-<div class="space-y-6 p-6">
+<div class="animate-fade space-y-5">
 
-  <!-- En-tête -->
-  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-    <h1 class="text-xl font-bold text-gray-900">Problèmes assignés</h1>
-    <p class="text-sm text-gray-500">{{ problemsPage().totalElements }} problème(s) au total</p>
+  <!-- Header -->
+  <div class="panel flex flex-col gap-2 p-6 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="microlabel mb-2">Agent · suivi</p>
+      <h1 class="text-2xl font-bold tracking-tight text-ink">Problèmes assignés</h1>
+    </div>
+    <p class="mono text-xs text-faint">{{ problemsPage().totalElements }} PROBLÈME(S) AU TOTAL</p>
   </div>
 
-  <!-- Messages -->
-  @if (successMessage()) {
-    <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-      {{ successMessage() }}
-    </div>
-  }
-  @if (error()) {
-    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-      {{ error() }}
-    </div>
-  }
+  @if (successMessage()) { <div class="banner banner-ok">{{ successMessage() }}</div> }
+  @if (error()) { <div class="banner banner-crit">{{ error() }}</div> }
 
-  <!-- Filtre statut -->
-  <div class="flex items-center gap-2">
-    <label class="text-sm font-medium text-gray-700">Filtrer :</label>
-    <select [(ngModel)]="statusFilter"
-      class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-      @for (s of allStatuses; track s.value) {
-        <option [value]="s.value">{{ s.label }}</option>
-      }
+  <!-- Filter -->
+  <div class="flex items-center gap-3">
+    <label class="microlabel">Filtrer</label>
+    <select [(ngModel)]="statusFilter" class="field max-w-xs">
+      @for (s of allStatuses; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
     </select>
   </div>
 
-  <!-- Chargement -->
   @if (loading()) {
     <div class="flex justify-center py-16">
-      <div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+      <div class="h-8 w-8 animate-spin rounded-full border-2 border-signal border-t-transparent"></div>
     </div>
   } @else if (filteredProblems.length === 0) {
-    <div class="rounded-xl border border-dashed border-gray-300 py-16 text-center">
-      <p class="text-gray-500">Aucun problème assigné pour le moment.</p>
+    <div class="panel border-dashed py-16 text-center">
+      <p class="text-muted">Aucun problème assigné pour le moment.</p>
     </div>
   } @else {
     <div class="space-y-3">
       @for (problem of filteredProblems; track problem.id) {
-        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div class="panel overflow-hidden">
 
-          <!-- Ligne principale -->
+          <!-- Main row -->
           <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="font-mono text-xs text-gray-400">#{{ problem.id }}</span>
-                <h3 class="truncate text-sm font-semibold text-gray-900">
-                  {{ problem.title || 'Problème sans titre' }}
-                </h3>
-                <span [class]="'inline-flex rounded-full px-2 py-0.5 text-xs font-medium ' + statusClass(problem.status)">
-                  {{ statusLabel(problem.status) }}
-                </span>
+              <div class="flex flex-wrap items-center gap-2.5">
+                <span class="mono text-xs text-faint">#P-{{ problem.id }}</span>
+                <h3 class="truncate text-sm font-semibold text-ink">{{ problem.title || 'Problème sans titre' }}</h3>
+                <span class="chip" [class]="statusClass(problem.status)">{{ statusLabel(problem.status) }}</span>
               </div>
-              <div class="mt-1 flex flex-wrap gap-3 text-xs text-gray-500">
-                <span>{{ problem.alerts.length }} signalement(s)</span>
-                <span>Créé le {{ problem.createdAt | slice:0:10 }}</span>
-                @if (problem.resolvedAt) {
-                  <span>Résolu le {{ problem.resolvedAt | slice:0:10 }}</span>
-                }
+              <div class="mono mt-1.5 flex flex-wrap gap-3 text-[0.7rem] text-faint">
+                <span>{{ problem.alerts.length }} SIGNALEMENT(S)</span>
+                <span>CRÉÉ {{ problem.createdAt | slice:0:10 }}</span>
+                @if (problem.resolvedAt) { <span>RÉSOLU {{ problem.resolvedAt | slice:0:10 }}</span> }
               </div>
             </div>
 
-            <!-- Actions -->
             <div class="flex shrink-0 flex-wrap items-center gap-2">
               @if (nextStatuses(problem.status).length > 0) {
-                <select
-                  (change)="changeStatus(problem, $any($event.target).value); $any($event.target).value = ''"
-                  class="rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select (change)="changeStatus(problem, $any($event.target).value); $any($event.target).value = ''" class="field btn-sm max-w-[12rem] py-1.5">
                   <option value="">Changer statut</option>
-                  @for (s of nextStatuses(problem.status); track s.value) {
-                    <option [value]="s.value">→ {{ s.label }}</option>
-                  }
+                  @for (s of nextStatuses(problem.status); track s.value) { <option [value]="s.value">→ {{ s.label }}</option> }
                 </select>
               }
-              <button (click)="toggleExpand(problem.id)"
-                class="rounded-lg border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50">
-                {{ expandedId() === problem.id ? 'Masquer' : 'Détails' }}
-              </button>
+              <button (click)="toggleExpand(problem.id)" class="btn btn-ghost btn-sm">{{ expandedId() === problem.id ? 'Masquer' : 'Détails' }}</button>
             </div>
           </div>
 
-          <!-- Détails étendus -->
+          <!-- Expanded -->
           @if (expandedId() === problem.id) {
-            <div class="space-y-4 border-t border-gray-100 bg-gray-50 px-5 py-4">
-
+            <div class="space-y-4 border-t border-line bg-canvas-2/60 px-5 py-4">
               @if (problem.description) {
                 <div>
-                  <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Description</p>
-                  <p class="text-sm text-gray-700">{{ problem.description }}</p>
+                  <p class="microlabel mb-1.5">Description</p>
+                  <p class="text-sm text-ink-dim">{{ problem.description }}</p>
                 </div>
               }
 
-              <!-- Signalements liés -->
               <div>
-                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Signalements liés ({{ problem.alerts.length }})
-                </p>
+                <p class="microlabel mb-2">Signalements liés ({{ problem.alerts.length }})</p>
                 @if (problem.alerts.length === 0) {
-                  <p class="text-sm italic text-gray-500">Aucun signalement lié.</p>
+                  <p class="text-sm italic text-faint">Aucun signalement lié.</p>
                 } @else {
                   <ul class="space-y-2">
                     @for (alert of problem.alerts; track alert.id) {
-                      <li class="rounded-lg border border-gray-200 bg-white px-3 py-2">
+                      <li class="panel-2 rounded-lg border border-line px-3 py-2">
                         <div class="flex items-center justify-between gap-2">
-                          <div class="min-w-0">
-                            <p class="truncate text-sm font-medium text-gray-800">
-                              <span class="font-mono text-gray-400">#{{ alert.id }}</span> — {{ alert.title }}
-                            </p>
-                          </div>
-                          <span [class]="'shrink-0 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ' + statusClass(alert.status)">
-                            {{ statusLabel(alert.status) }}
-                          </span>
+                          <p class="min-w-0 truncate text-sm font-medium text-ink-dim"><span class="mono text-faint">#A-{{ alert.id }}</span> — {{ alert.title }}</p>
+                          <span class="chip shrink-0" [class]="statusClass(alert.status)">{{ statusLabel(alert.status) }}</span>
                         </div>
                       </li>
                     }
@@ -121,18 +87,14 @@
                 }
               </div>
 
-              <!-- Historique des statuts -->
               @if (problem.statusHistory.length > 0) {
                 <div>
-                  <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Historique</p>
+                  <p class="microlabel mb-2">Historique</p>
                   <ul class="space-y-1">
                     @for (h of problem.statusHistory; track h.id) {
-                      <li class="text-xs text-gray-600">
-                        <span class="text-gray-400">{{ h.changedAt | slice:0:10 }}</span>
-                        — {{ statusLabel(h.previousStatus) }} → {{ statusLabel(h.newStatus) }}
-                        @if (h.comment) {
-                          <span class="text-gray-400"> · {{ h.comment }}</span>
-                        }
+                      <li class="mono text-xs text-muted">
+                        <span class="text-faint">{{ h.changedAt | slice:0:10 }}</span> — {{ statusLabel(h.previousStatus) }} → {{ statusLabel(h.newStatus) }}
+                        @if (h.comment) { <span class="text-faint"> · {{ h.comment }}</span> }
                       </li>
                     }
                   </ul>
@@ -147,15 +109,12 @@
     <!-- Pagination -->
     @if (problemsPage().totalPages > 1) {
       <div class="flex items-center justify-between pt-2">
-        <p class="text-sm text-gray-500">
-          Page {{ problemsPage().number + 1 }} sur {{ problemsPage().totalPages }}
-        </p>
+        <p class="mono text-xs text-faint">PAGE {{ problemsPage().number + 1 }} / {{ problemsPage().totalPages }}</p>
         <div class="flex gap-1">
           @for (p of totalPages; track p) {
-            <button (click)="loadProblems(p)"
-              [class]="p === problemsPage().number
-                ? 'rounded px-3 py-1 text-sm font-semibold bg-blue-600 text-white'
-                : 'rounded px-3 py-1 text-sm text-gray-600 hover:bg-gray-100'">
+            <button (click)="loadProblems(p)" class="mono rounded-lg px-3 py-1 text-sm transition-colors"
+              [class.bg-signal]="p === problemsPage().number" [class.text-on-signal]="p === problemsPage().number" [class.font-bold]="p === problemsPage().number"
+              [class.text-muted]="p !== problemsPage().number" [class.hover:bg-surface-2]="p !== problemsPage().number">
               {{ p + 1 }}
             </button>
           }

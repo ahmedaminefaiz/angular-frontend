@@ -91,12 +91,12 @@ export class AgentProblemsComponent implements OnInit {
 
   statusClass(status: string): string {
     const map: Record<string, string> = {
-      NEW: 'bg-blue-100 text-blue-700',
-      IN_PROGRESS: 'bg-amber-100 text-amber-700',
-      RESOLVED: 'bg-green-100 text-green-700',
-      REJECTED: 'bg-red-100 text-red-700'
+      NEW: 'chip-info',
+      IN_PROGRESS: 'chip-amber',
+      RESOLVED: 'chip-ok',
+      REJECTED: 'chip-crit'
     };
-    return map[status] ?? 'bg-gray-100 text-gray-700';
+    return map[status] ?? 'chip-neutral';
   }
 
   nextStatuses(current: ProblemStatus): { value: ProblemStatus; label: string }[] {

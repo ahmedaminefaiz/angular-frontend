@@ -3,11 +3,12 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { MoroccanPhoneInputComponent } from '../../../shared/phone-input/moroccan-phone-input.component';
+import { ThemeToggleComponent } from '../../../shared/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-verify-phone',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, MoroccanPhoneInputComponent],
+  imports: [ReactiveFormsModule, RouterLink, MoroccanPhoneInputComponent, ThemeToggleComponent],
   templateUrl: './verify-phone.component.html'
 })
 export class VerifyPhoneComponent implements OnInit {

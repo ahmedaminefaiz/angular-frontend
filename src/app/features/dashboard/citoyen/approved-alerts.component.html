@@ -1,108 +1,60 @@
-<section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+<section class="panel overflow-hidden">
 
   <!-- Header -->
-  <div class="border-b border-slate-200 px-6 py-4">
-    <h3 class="text-base font-semibold text-slate-900">Signalements approuvés</h3>
+  <div class="border-b border-line px-6 py-4">
+    <div class="flex items-center gap-2.5">
+      <span class="dot dot-ok"></span>
+      <h3 class="microlabel" style="color:var(--color-ink-dim)">Signalements approuvés</h3>
+    </div>
     @if (!loading()) {
-      <p class="mt-0.5 text-xs text-slate-500">{{ page().totalElements }} regroupement(s) lié(s) à vos alertes</p>
+      <p class="mono mt-1.5 text-[0.7rem] text-faint">{{ page().totalElements }} REGROUPEMENT(S) LIÉ(S) À VOS ALERTES</p>
     }
   </div>
 
   @if (loading()) {
-    <!-- Skeleton -->
     <div class="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-3">
       @for (_ of skeletonRows; track $index) {
-        <div class="rounded-xl border border-slate-200 p-4">
-          <div class="mb-3 h-28 animate-pulse rounded-lg bg-emerald-100/70"></div>
-          <div class="h-3.5 w-2/3 animate-pulse rounded bg-slate-100"></div>
-        </div>
+        <div class="panel-2 rounded-xl border border-line p-4"><div class="mb-3 h-28 animate-pulse rounded-lg bg-surface-3"></div><div class="h-3.5 w-2/3 animate-pulse rounded bg-surface-2"></div></div>
       }
     </div>
-
   } @else if (page().content.length === 0) {
-    <!-- Empty state -->
     <div class="px-6 py-16 text-center">
-      <svg class="mx-auto mb-3 h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-      </svg>
-      <p class="text-sm text-slate-400">Aucun regroupement lié à vos alertes pour l'instant.</p>
+      <svg class="mx-auto mb-3 h-10 w-10 text-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <p class="text-sm text-faint">Aucun regroupement lié à vos alertes pour l'instant.</p>
     </div>
-
   } @else {
-    <!-- Problem cards -->
     <div class="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-3">
       @for (problem of page().content; track problem.id) {
-        <div class="flex flex-col rounded-xl border border-slate-200 p-4 shadow-sm transition hover:shadow-md">
+        <div class="panel-2 flex flex-col rounded-xl border border-line p-4 transition-colors hover:border-line-strong">
 
-          <!-- Card header -->
-          <div class="mb-3 rounded-lg bg-emerald-50 p-4">
-            <p class="font-semibold text-slate-800 leading-snug">{{ problem.title }}</p>
-            <span class="mt-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-              [class]="statusClass(problem.status)">
-              {{ statusLabel(problem.status) }}
-            </span>
+          <div class="mb-3 rounded-lg border border-line bg-surface p-4">
+            <p class="font-semibold leading-snug text-ink">{{ problem.title }}</p>
+            <span class="chip mt-2.5" [class]="statusClass(problem.status)">{{ statusLabel(problem.status) }}</span>
           </div>
 
-          <!-- Meta -->
-          <div class="flex-1 space-y-1 text-xs text-slate-500">
-            <p>
-              <span class="font-medium text-slate-600">Créé le :</span>
-              {{ problem.createdAt | date:'d MMM y' }}
-            </p>
-            <p>
-              <span class="font-medium text-slate-600">Criticité :</span>
-              {{ criticalityLabel(problem) }}
-            </p>
-            <p>
-              <span class="font-medium text-slate-600">Alertes liées :</span>
-              {{ problem.alerts.length }}
-            </p>
-          </div>
+          <dl class="flex-1 space-y-1.5 text-xs">
+            <div class="flex justify-between gap-2"><dt class="microlabel">Créé le</dt><dd class="mono text-muted">{{ problem.createdAt | date:'d MMM y' }}</dd></div>
+            <div class="flex justify-between gap-2"><dt class="microlabel">Criticité</dt><dd class="text-right text-muted">{{ criticalityLabel(problem) }}</dd></div>
+            <div class="flex justify-between gap-2"><dt class="microlabel">Alertes liées</dt><dd class="mono text-muted">{{ problem.alerts.length }}</dd></div>
+          </dl>
 
-          <!-- Detail button -->
           <div class="mt-4 flex justify-end">
-            <button
-              type="button"
-              class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-              (click)="openDetail(problem)">
-              Voir les détails
-            </button>
+            <button type="button" class="btn btn-ghost btn-sm" (click)="openDetail(problem)">Voir les détails</button>
           </div>
         </div>
       }
     </div>
 
-    <!-- Pagination -->
     @if (page().totalPages > 1) {
-      <div class="flex items-center justify-between border-t border-slate-200 px-6 py-3">
-        <button
-          type="button"
-          class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          [disabled]="page().number === 0"
-          (click)="changePage(page().number - 1)">
-          Précédent
-        </button>
-        <span class="text-xs text-slate-500">
-          Page {{ page().number + 1 }} / {{ page().totalPages }}
-        </span>
-        <button
-          type="button"
-          class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          [disabled]="page().number >= page().totalPages - 1"
-          (click)="changePage(page().number + 1)">
-          Suivant
-        </button>
+      <div class="flex items-center justify-between border-t border-line px-6 py-3">
+        <button type="button" class="btn btn-ghost btn-sm" [disabled]="page().number === 0" (click)="changePage(page().number - 1)">Précédent</button>
+        <span class="mono text-[0.7rem] text-faint">PAGE {{ page().number + 1 }} / {{ page().totalPages }}</span>
+        <button type="button" class="btn btn-ghost btn-sm" [disabled]="page().number >= page().totalPages - 1" (click)="changePage(page().number + 1)">Suivant</button>
       </div>
     }
   }
-
 </section>
 
-<!-- Detail modal — managed internally -->
 @if (selectedProblem()) {
-  <app-problem-detail-modal
-    [problem]="selectedProblem()!"
-    (close)="closeDetail()"
-  />
+  <app-problem-detail-modal [problem]="selectedProblem()!" (close)="closeDetail()" />
 }

@@ -1,130 +1,84 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-  <div class="w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-y-auto max-h-[90vh]">
+<div class="modal-backdrop z-50 items-center" (click)="cancelled.emit()">
+  <div class="modal-card animate-rise max-w-lg" (click)="$event.stopPropagation()">
 
-    <!-- Header -->
-    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-      <h2 class="text-lg font-semibold text-gray-900">Nouvelle intervention</h2>
-      <button (click)="cancelled.emit()" class="text-gray-400 hover:text-gray-600">
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+    <div class="flex items-center justify-between border-b border-line px-6 py-4">
+      <div>
+        <p class="microlabel mb-1">Affectation</p>
+        <h2 class="text-lg font-bold text-ink">Nouvelle intervention</h2>
+      </div>
+      <button (click)="cancelled.emit()" class="modal-close">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4 px-6 py-5">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="max-h-[68vh] space-y-4 overflow-y-auto px-6 py-5">
 
-      <!-- Agent -->
       <div>
-        <label class="block text-sm font-medium text-gray-700">Agent <span class="text-red-500">*</span></label>
+        <label class="field-label">Agent <span class="text-crit">*</span></label>
         @if (loadingAgents()) {
-          <p class="mt-1 text-sm text-gray-400">Chargement des agents...</p>
+          <p class="text-sm text-faint">Chargement des agents…</p>
         } @else if (agents().length === 0) {
-          <p class="mt-1 text-sm text-amber-600 italic">Aucun agent disponible.</p>
+          <p class="text-sm italic text-amber">Aucun agent disponible.</p>
         } @else {
-          <select formControlName="agentId"
-            class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select formControlName="agentId" class="field">
             <option [ngValue]="null" disabled>Sélectionnez un agent</option>
-            @for (agent of agents(); track agent.id) {
-              <option [ngValue]="agent.id">{{ agent.prenom }} {{ agent.nom }} — {{ agent.ville }}</option>
-            }
+            @for (agent of agents(); track agent.id) { <option [ngValue]="agent.id">{{ agent.prenom }} {{ agent.nom }} — {{ agent.ville }}</option> }
           </select>
         }
       </div>
 
-      <!-- Description -->
       <div>
-        <label class="block text-sm font-medium text-gray-700">Description <span class="text-red-500">*</span></label>
-        <textarea formControlName="description" rows="3"
-          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          placeholder="Décrivez l'intervention à réaliser..."></textarea>
+        <label class="field-label">Description <span class="text-crit">*</span></label>
+        <textarea formControlName="description" rows="3" class="field resize-none" placeholder="Décrivez l'intervention à réaliser…"></textarea>
         @if (form.controls.description.touched && form.controls.description.errors) {
-          <p class="text-xs text-red-500 mt-1">
-            @if (form.controls.description.errors['required']) {
-              La description est obligatoire.
-            } @else if (form.controls.description.errors['maxlength']) {
-              2000 caractères maximum.
-            }
+          <p class="mt-1 text-xs text-crit">
+            @if (form.controls.description.errors['required']) { La description est obligatoire. } @else if (form.controls.description.errors['maxlength']) { 2000 caractères maximum. }
           </p>
         }
       </div>
 
-      <!-- Type d'action -->
       <div>
-        <label class="block text-sm font-medium text-gray-700">Type d'action <span class="text-red-500">*</span></label>
-        <select formControlName="actionType"
-          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        <label class="field-label">Type d'action <span class="text-crit">*</span></label>
+        <select formControlName="actionType" class="field">
           <option value="" disabled>Sélectionner un type</option>
-          @for (opt of actionTypeOptions; track opt.value) {
-            <option [value]="opt.value">{{ opt.label }}</option>
-          }
+          @for (opt of actionTypeOptions; track opt.value) { <option [value]="opt.value">{{ opt.label }}</option> }
         </select>
       </div>
 
-      <!-- Photos (upload Cloudinary) -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Photos ({{ photos().length }}/3)</label>
-
+        <label class="field-label">Photos ({{ photos().length }}/3)</label>
         @if (photos().length > 0) {
           <div class="mb-3 flex flex-wrap gap-3">
             @for (photo of photos(); track photo; let i = $index) {
               <div class="group relative">
-                <img [src]="photo" alt="Photo" class="h-20 w-20 rounded-lg border border-gray-200 object-cover">
-                <button
-                  type="button"
-                  title="Retirer"
-                  (click)="removePhoto(i)"
-                  class="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow transition-opacity group-hover:opacity-100 hover:bg-red-600">
-                  <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
+                <img [src]="photo" alt="Photo" class="h-20 w-20 rounded-lg border border-line object-cover">
+                <button type="button" title="Retirer" (click)="removePhoto(i)" class="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-crit text-white opacity-0 shadow transition-opacity group-hover:opacity-100">
+                  <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
             }
           </div>
         }
-
-        @if (photoError()) {
-          <p class="mb-2 text-xs text-red-600">{{ photoError() }}</p>
-        }
-
+        @if (photoError()) { <p class="mb-2 text-xs text-crit">{{ photoError() }}</p> }
         @if (photos().length < 3) {
           <input type="file" accept="image/*" class="hidden" #createFileInput (change)="onPhotoFileSelected($event)">
-          <button
-            type="button"
-            [disabled]="uploadingPhoto()"
-            (click)="createFileInput.click()"
-            class="inline-flex items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-600 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50">
+          <button type="button" [disabled]="uploadingPhoto()" (click)="createFileInput.click()" class="inline-flex items-center gap-2 rounded-lg border border-dashed border-line-strong bg-surface-2 px-3 py-2 text-xs font-medium text-muted transition hover:border-signal hover:text-signal disabled:opacity-50">
             @if (uploadingPhoto()) {
-              <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-              </svg>
+              <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
               Upload en cours…
             } @else {
-              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-              </svg>
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
               Ajouter une photo
             }
           </button>
         }
       </div>
 
-      <!-- Erreur -->
-      @if (errorMessage()) {
-        <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{{ errorMessage() }}</p>
-      }
+      @if (errorMessage()) { <div class="banner banner-crit">{{ errorMessage() }}</div> }
 
-      <!-- Boutons -->
       <div class="flex justify-end gap-3 pt-2">
-        <button type="button" (click)="cancelled.emit()"
-          class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-          Annuler
-        </button>
-        <button type="submit" [disabled]="form.invalid || submitting() || loadingAgents() || uploadingPhoto()"
-          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors">
-          {{ submitting() ? 'Création...' : 'Créer l\'intervention' }}
-        </button>
+        <button type="button" (click)="cancelled.emit()" class="btn btn-ghost">Annuler</button>
+        <button type="submit" [disabled]="form.invalid || submitting() || loadingAgents() || uploadingPhoto()" class="btn btn-signal">{{ submitting() ? 'Création…' : 'Créer l\'intervention' }}</button>
       </div>
     </form>
   </div>

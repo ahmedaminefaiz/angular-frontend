@@ -1,167 +1,125 @@
-<div class="space-y-6">
+<div class="animate-fade space-y-5">
 
-  <!-- Welcome banner -->
-  <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white">
-    <h2 class="text-2xl font-bold mb-1">Espace Super-Agent</h2>
-    <p class="text-purple-100 text-sm">Gérez vos problèmes signalés et supervisez vos agents.</p>
+  <!-- Header -->
+  <div class="panel p-6">
+    <p class="microlabel mb-2">Espace super-agent</p>
+    <h2 class="text-2xl font-bold tracking-tight">Pilotage des problèmes & équipes</h2>
+    <p class="mt-1 text-sm text-muted">Qualifiez les signalements, gérez vos problèmes et supervisez vos agents.</p>
   </div>
 
   <!-- Problem stats -->
   @if (loadingProblems()) {
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
       @for (_ of [1,2,3,4]; track $index) {
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center animate-pulse">
-          <div class="h-8 w-12 bg-gray-200 rounded mx-auto mb-2"></div>
-          <div class="h-3 w-20 bg-gray-100 rounded mx-auto"></div>
-        </div>
+        <div class="panel animate-pulse p-5"><div class="mb-2 h-8 w-12 rounded bg-surface-2"></div><div class="h-3 w-20 rounded bg-surface-2"></div></div>
       }
     </div>
   } @else {
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-gray-800">{{ problemStats().total }}</p>
-        <p class="text-xs text-gray-500 mt-1">Problèmes créés</p>
-      </div>
-      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-blue-500">{{ problemStats().new }}</p>
-        <p class="text-xs text-gray-500 mt-1">Nouveaux</p>
-      </div>
-      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-yellow-500">{{ problemStats().inProgress }}</p>
-        <p class="text-xs text-gray-500 mt-1">En cours</p>
-      </div>
-      <div class="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100 text-center">
-        <p class="text-3xl font-bold text-green-500">{{ problemStats().resolved }}</p>
-        <p class="text-xs text-gray-500 mt-1">Résolus</p>
-      </div>
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div class="panel p-5"><p class="microlabel">Problèmes créés</p><p class="mono mt-2 text-3xl font-bold text-ink">{{ problemStats().total }}</p></div>
+      <div class="panel p-5"><p class="microlabel">Nouveaux</p><p class="mono mt-2 text-3xl font-bold text-info">{{ problemStats().new }}</p></div>
+      <div class="panel p-5"><p class="microlabel">En cours</p><p class="mono mt-2 text-3xl font-bold text-amber">{{ problemStats().inProgress }}</p></div>
+      <div class="panel p-5"><p class="microlabel">Résolus</p><p class="mono mt-2 text-3xl font-bold text-ok">{{ problemStats().resolved }}</p></div>
     </div>
   }
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
-    <!-- Pending agents card -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
+    <!-- Pending agents -->
+    <div class="panel p-6">
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
-          <p class="text-sm text-gray-500 mb-2">Agents en attente d'approbation</p>
+          <p class="microlabel mb-3">Agents en attente d'approbation</p>
           @if (loadingPending()) {
-            <div class="h-10 w-16 bg-gray-100 rounded-lg animate-pulse"></div>
+            <div class="h-10 w-16 animate-pulse rounded-lg bg-surface-2"></div>
           } @else {
-            <p class="text-4xl font-bold"
-              [class.text-yellow-500]="pendingCount() > 0"
-              [class.text-gray-800]="pendingCount() === 0">
-              {{ pendingCount() }}
-            </p>
+            <p class="mono text-4xl font-bold" [class.text-amber]="pendingCount() > 0" [class.text-ink]="pendingCount() === 0">{{ pendingCount() }}</p>
           }
         </div>
-        <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center flex-shrink-0">
-          <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-          </svg>
-        </div>
+        <span class="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl border border-line bg-surface">
+          <svg class="h-5 w-5 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </span>
       </div>
       @if (!loadingPending()) {
-        <div class="mt-4 pt-4 border-t border-gray-100">
+        <div class="mt-4 border-t border-line pt-4">
           @if (pendingCount() > 0) {
-            <a routerLink="/dashboard/super-agent/pending-agents"
-               class="inline-flex items-center gap-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium text-sm px-4 py-2.5 rounded-lg transition-colors">
-              Voir les agents en attente
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </a>
+            <a routerLink="/dashboard/super-agent/pending-agents" class="btn btn-ghost btn-sm">Voir les agents en attente →</a>
           } @else {
-            <p class="text-sm text-gray-400">Aucun agent en attente. Tout est à jour.</p>
+            <p class="text-sm text-faint">Aucun agent en attente. Tout est à jour.</p>
           }
         </div>
       }
     </div>
 
     <!-- Recent problems -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-semibold text-gray-800">Mes problèmes récents</h3>
-        <a routerLink="/dashboard/super-agent/problems"
-           class="text-sm text-purple-600 hover:text-purple-700 font-medium">
-          Voir tous →
-        </a>
+    <div class="panel p-6">
+      <div class="mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="dot dot-info"></span>
+          <h3 class="microlabel" style="color:var(--color-ink-dim)">Mes problèmes récents</h3>
+        </div>
+        <a routerLink="/dashboard/super-agent/problems" class="text-sm font-medium text-signal hover:underline">Voir tous →</a>
       </div>
       @if (loadingProblems()) {
         <div class="space-y-3">
-          @for (_ of [1,2,3]; track $index) {
-            <div class="h-12 bg-gray-100 rounded-lg animate-pulse"></div>
-          }
+          @for (_ of [1,2,3]; track $index) { <div class="h-12 animate-pulse rounded-lg bg-surface-2"></div> }
         </div>
       } @else if (recentProblems().length === 0) {
-        <p class="text-sm text-gray-400 py-4 text-center">Aucun problème créé pour l'instant.</p>
+        <p class="py-4 text-center text-sm text-faint">Aucun problème créé pour l'instant.</p>
       } @else {
-        <div class="divide-y divide-gray-50">
+        <div class="divide-y divide-line/60">
           @for (p of recentProblems(); track p.id) {
-            <div class="py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center justify-between gap-3 py-3">
               <div class="min-w-0">
-                <p class="text-sm font-medium text-gray-800 truncate">{{ p.title }}</p>
-                <p class="text-xs text-gray-400 mt-0.5">{{ p.createdAt | date:'dd/MM/yyyy' }}</p>
+                <p class="truncate text-sm font-medium text-ink">{{ p.title }}</p>
+                <p class="mono mt-0.5 text-[0.7rem] text-faint">{{ p.createdAt | date:'dd/MM/yy' }}</p>
               </div>
-              <span class="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
-                [class]="statusClass(p.status)">
-                {{ statusLabel(p.status) }}
-              </span>
+              <span class="chip flex-shrink-0" [class]="statusClass(p.status)">{{ statusLabel(p.status) }}</span>
             </div>
           }
         </div>
       }
     </div>
-
   </div>
 
-  <!-- Historique des approbations -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 md:p-6">
-    <h3 class="font-semibold text-gray-800 mb-4">Historique des approbations</h3>
+  <!-- Approval history -->
+  <div class="panel p-6">
+    <div class="mb-4 flex items-center gap-2">
+      <span class="dot dot-ok"></span>
+      <h3 class="microlabel" style="color:var(--color-ink-dim)">Historique des approbations</h3>
+    </div>
     @if (loadingAgents()) {
       <div class="space-y-3">
-        @for (_ of [1,2,3]; track $index) {
-          <div class="h-12 bg-gray-100 rounded-lg animate-pulse"></div>
-        }
+        @for (_ of [1,2,3]; track $index) { <div class="h-12 animate-pulse rounded-lg bg-surface-2"></div> }
       </div>
     } @else if (myAgents().length === 0) {
       <div class="flex flex-col items-center justify-center py-8 text-center">
-        <p class="text-sm text-gray-400">Aucun agent approuvé pour l'instant.</p>
-        <a routerLink="/dashboard/super-agent/pending-agents"
-           class="mt-3 text-sm text-purple-600 hover:underline">
-          Voir les agents en attente
-        </a>
+        <p class="text-sm text-faint">Aucun agent approuvé pour l'instant.</p>
+        <a routerLink="/dashboard/super-agent/pending-agents" class="mt-3 text-sm text-signal hover:underline">Voir les agents en attente</a>
       </div>
     } @else {
       <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
           <thead>
-            <tr class="text-left text-xs text-gray-400 border-b border-gray-100">
-              <th class="pb-3 font-medium pr-4">Nom</th>
-              <th class="pb-3 font-medium pr-4">Téléphone</th>
-              <th class="pb-3 font-medium pr-4">Ville</th>
-              <th class="pb-3 font-medium">Statut</th>
+            <tr class="border-b border-line text-left">
+              <th class="microlabel pb-3 pr-4 font-normal">Nom</th>
+              <th class="microlabel pb-3 pr-4 font-normal">Téléphone</th>
+              <th class="microlabel pb-3 pr-4 font-normal">Ville</th>
+              <th class="microlabel pb-3 font-normal">Statut</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-50">
+          <tbody class="divide-y divide-line/60">
             @for (agent of myAgents(); track agent.id) {
               <tr>
-                <td class="py-3 pr-4 font-medium text-gray-800">{{ agent.prenom }} {{ agent.nom }}</td>
-                <td class="py-3 pr-4 text-gray-500">{{ agent.phone }}</td>
-                <td class="py-3 pr-4 text-gray-500">{{ agent.ville || '—' }}</td>
+                <td class="py-3 pr-4 font-medium text-ink">{{ agent.prenom }} {{ agent.nom }}</td>
+                <td class="mono py-3 pr-4 text-muted">{{ agent.phone }}</td>
+                <td class="py-3 pr-4 text-muted">{{ agent.ville || '—' }}</td>
                 <td class="py-3">
-                  <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-                    [class.bg-green-100]="agent.status === 'ACTIVE'"
-                    [class.text-green-700]="agent.status === 'ACTIVE'"
-                    [class.bg-red-100]="agent.status === 'REJECTED'"
-                    [class.text-red-700]="agent.status === 'REJECTED'"
-                    [class.bg-gray-100]="agent.status !== 'ACTIVE' && agent.status !== 'REJECTED'"
-                    [class.text-gray-600]="agent.status !== 'ACTIVE' && agent.status !== 'REJECTED'">
-                    <span class="w-1.5 h-1.5 rounded-full"
-                      [class.bg-green-500]="agent.status === 'ACTIVE'"
-                      [class.bg-red-500]="agent.status === 'REJECTED'"
-                      [class.bg-gray-400]="agent.status !== 'ACTIVE' && agent.status !== 'REJECTED'">
-                    </span>
+                  <span class="chip"
+                    [class.chip-ok]="agent.status === 'ACTIVE'"
+                    [class.chip-crit]="agent.status === 'REJECTED'"
+                    [class.chip-neutral]="agent.status !== 'ACTIVE' && agent.status !== 'REJECTED'">
+                    <span class="dot" [class.dot-ok]="agent.status === 'ACTIVE'" [class.dot-crit]="agent.status === 'REJECTED'" [class.dot-muted]="agent.status !== 'ACTIVE' && agent.status !== 'REJECTED'"></span>
                     {{ agent.status === 'ACTIVE' ? 'Actif' : agent.status === 'REJECTED' ? 'Rejeté' : agent.status }}
                   </span>
                 </td>
@@ -172,5 +130,4 @@
       </div>
     }
   </div>
-
 </div>

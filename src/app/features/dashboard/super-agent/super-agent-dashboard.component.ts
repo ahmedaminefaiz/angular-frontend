@@ -73,11 +73,11 @@ export class SuperAgentDashboardComponent implements OnInit {
 
   statusClass(status: ProblemStatus): string {
     const map: Record<ProblemStatus, string> = {
-      NEW: 'bg-blue-100 text-blue-700',
-      IN_PROGRESS: 'bg-yellow-100 text-yellow-700',
-      RESOLVED: 'bg-green-100 text-green-700',
-      REJECTED: 'bg-red-100 text-red-700'
+      NEW: 'chip-info',
+      IN_PROGRESS: 'chip-amber',
+      RESOLVED: 'chip-ok',
+      REJECTED: 'chip-crit'
     };
-    return map[status] ?? 'bg-gray-100 text-gray-600';
+    return map[status] ?? 'chip-neutral';
   }
 }

@@ -1,53 +1,33 @@
-<div class="fixed inset-0 z-50 bg-black/50 p-4" (click)="cancel.emit()">
-  <div
-    class="mx-auto mt-6 flex max-h-[90vh] max-w-2xl flex-col rounded-xl bg-white p-5 shadow-xl"
-    (click)="$event.stopPropagation()"
-  >
-    <div class="mb-3 flex items-center justify-between gap-2">
+<div class="modal-backdrop z-50" (click)="cancel.emit()">
+  <div class="modal-card animate-rise flex max-w-2xl flex-col" (click)="$event.stopPropagation()">
+
+    <div class="flex items-center justify-between gap-2 border-b border-line px-6 py-4">
       <div>
-        <h3 class="text-lg font-semibold text-slate-900">Choisir sur la carte</h3>
-        <p class="text-xs text-slate-500">Cliquez sur la carte pour placer le marqueur (Maroc uniquement).</p>
+        <p class="microlabel mb-1">Localisation</p>
+        <h3 class="text-lg font-bold text-ink">Choisir sur la carte</h3>
+        <p class="mt-0.5 text-xs text-muted">Cliquez sur la carte pour placer le marqueur (Maroc uniquement).</p>
       </div>
-      <button
-        type="button"
-        class="rounded border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
-        (click)="cancel.emit()"
-      >
-        X
+      <button type="button" class="modal-close" (click)="cancel.emit()">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div #mapHost class="h-80 w-full shrink-0 rounded-lg border border-slate-200"></div>
-    <p class="mt-2 text-xs text-slate-600">
-      @if (selectedLat != null && selectedLng != null) {
-        <span class="font-medium text-slate-800">
-          {{ formatCoordinate(selectedLat) }}, {{ formatCoordinate(selectedLng) }}
-        </span>
-        @if (addressPreview) {
-          <span class="block mt-0.5">{{ addressPreview }}</span>
+
+    <div class="p-6">
+      <div #mapHost class="h-80 w-full shrink-0 overflow-hidden rounded-lg border border-line"></div>
+      <p class="mono mt-3 text-xs text-muted">
+        @if (selectedLat != null && selectedLng != null) {
+          <span class="text-signal">{{ formatCoordinate(selectedLat) }}, {{ formatCoordinate(selectedLng) }}</span>
+          @if (addressPreview) { <span class="mt-1 block text-muted">{{ addressPreview }}</span> }
+        } @else {
+          Aucun point sélectionné.
         }
-      } @else {
-        Aucun point sélectionné.
-      }
-    </p>
-    @if (mapError) {
-      <p class="mt-1 text-xs text-rose-600">{{ mapError }}</p>
-    }
-    <div class="mt-4 flex items-center justify-end gap-2">
-      <button
-        type="button"
-        class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        (click)="cancel.emit()"
-      >
-        Annuler
-      </button>
-      <button
-        type="button"
-        class="rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
-        [disabled]="selectedLat == null || selectedLng == null"
-        (click)="confirmSelection()"
-      >
-        Valider
-      </button>
+      </p>
+      @if (mapError) { <p class="mt-1.5 text-xs text-crit">{{ mapError }}</p> }
+
+      <div class="mt-5 flex items-center justify-end gap-2">
+        <button type="button" class="btn btn-ghost" (click)="cancel.emit()">Annuler</button>
+        <button type="button" class="btn btn-signal" [disabled]="selectedLat == null || selectedLng == null" (click)="confirmSelection()">Valider</button>
+      </div>
     </div>
   </div>
 </div>

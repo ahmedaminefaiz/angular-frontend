@@ -67,6 +67,22 @@ export class TokenService {
     return null;
   }
 
+  getFullName(): string | null {
+    const payload = this.getTokenPayload();
+    if (!payload) return null;
+
+    const full = payload['fullName'] ?? payload['name'];
+    if (typeof full === 'string' && full.trim()) return full.trim();
+
+    const first = payload['prenom'] ?? payload['firstName'] ?? payload['given_name'];
+    const last = payload['nom'] ?? payload['lastName'] ?? payload['family_name'];
+    const combined = [first, last]
+      .filter(v => typeof v === 'string' && v.trim())
+      .join(' ')
+      .trim();
+    return combined || null;
+  }
+
   getUserId(): number | null {
     const payload = this.getTokenPayload();
     if (!payload) return null;

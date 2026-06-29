@@ -76,11 +76,11 @@ export class ApprovedAlertsComponent implements OnInit {
 
   statusClass(status: ProblemStatus): string {
     const classes: Record<ProblemStatus, string> = {
-      NEW: 'bg-slate-100 text-slate-700',
-      IN_PROGRESS: 'bg-amber-100 text-amber-800',
-      RESOLVED: 'bg-emerald-100 text-emerald-800',
-      REJECTED: 'bg-rose-100 text-rose-700'
+      NEW: 'chip-info',
+      IN_PROGRESS: 'chip-amber',
+      RESOLVED: 'chip-ok',
+      REJECTED: 'chip-crit'
     };
-    return classes[status] ?? 'bg-slate-100 text-slate-700';
+    return classes[status] ?? 'chip-neutral';
   }
 }

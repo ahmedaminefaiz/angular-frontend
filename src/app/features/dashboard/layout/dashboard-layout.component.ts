@@ -6,6 +6,7 @@ import { TokenService } from '../../../core/services/token.service';
 import { NotificationService } from '../../../services/notification.service';
 import { NotificationResponse } from '../../../models/notification.models';
 import { Role } from '../../../models/auth.models';
+import { ThemeToggleComponent } from '../../../shared/theme-toggle/theme-toggle.component';
 
 interface NavItem {
   label: string;
@@ -15,11 +16,12 @@ interface NavItem {
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgClass],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgClass, ThemeToggleComponent],
   templateUrl: './dashboard-layout.component.html'
 })
 export class DashboardLayoutComponent implements OnInit, OnDestroy {
   role: Role | null = null;
+  fullName: string | null = null;
   navItems: NavItem[] = [];
   sidebarOpen = false;
   unreadCount = 0;
@@ -37,6 +39,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.role = this.tokenService.getRole();
+    this.fullName = this.tokenService.getFullName();
     this.navItems = this.buildNavItems(this.role);
 
     if (this.role === 'CITOYEN' || this.role === 'AGENT') {
@@ -80,6 +83,10 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
 
   isNotifRoute(item: NavItem): boolean {
     return item.route.includes('notifications');
+  }
+
+  get displayName(): string {
+    return this.fullName ?? this.roleLabel;
   }
 
   get roleLabel(): string {

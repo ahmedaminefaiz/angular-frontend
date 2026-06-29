@@ -1,89 +1,71 @@
-<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+<div class="panel overflow-hidden">
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm">
-      <thead class="bg-slate-50 text-slate-600">
-        <tr class="border-b border-slate-200">
-          <th class="px-3 py-3 text-left font-medium">Title</th>
-          <th class="px-3 py-3 text-left font-medium">Nom prenom</th>
-          <th class="px-3 py-3 text-left font-medium">Priority</th>
-          <th class="px-3 py-3 text-left font-medium">Category</th>
-          <th class="px-3 py-3 text-left font-medium">Status</th>
-          <th class="px-3 py-3 text-right font-medium">Actions</th>
+      <thead>
+        <tr class="border-b border-line text-left">
+          <th class="microlabel px-4 py-3.5 font-normal">Signalement</th>
+          <th class="microlabel px-4 py-3.5 font-normal">Citoyen</th>
+          <th class="microlabel px-4 py-3.5 font-normal">Priorité</th>
+          <th class="microlabel px-4 py-3.5 font-normal">Catégorie</th>
+          <th class="microlabel px-4 py-3.5 font-normal">Statut</th>
+          <th class="microlabel px-4 py-3.5 text-right font-normal">Actions</th>
         </tr>
       </thead>
       <tbody>
         @if (loading) {
           @for (_ of skeletonRows; track $index) {
-            <tr class="border-b border-slate-100">
-              <td colspan="6" class="px-3 py-3">
-                <div class="h-5 w-full animate-pulse rounded bg-slate-100"></div>
+            <tr class="border-b border-line/60">
+              <td colspan="6" class="px-4 py-4">
+                <div class="h-5 w-full animate-pulse rounded bg-surface-2"></div>
               </td>
             </tr>
           }
         } @else if (page.content.length === 0) {
           <tr>
-            <td colspan="6" class="px-3 py-8 text-center text-slate-400">Aucune alerte trouvée.</td>
+            <td colspan="6" class="px-4 py-14 text-center">
+              <p class="microlabel mb-1">Aucun résultat</p>
+              <p class="text-sm text-muted">Aucun signalement trouvé.</p>
+            </td>
           </tr>
         } @else {
           @for (alert of page.content; track alert.id) {
-            <tr class="border-b border-slate-100 transition"
-              [class.bg-white]="getRowToneClass(alert) === 'normal'"
-              [class.bg-slate-50]="getRowToneClass(alert) === 'muted'"
-              [class.bg-amber-50]="getRowToneClass(alert) === 'warning'"
-              [class.bg-emerald-50]="getRowToneClass(alert) === 'success'"
-              [class.bg-rose-50]="getRowToneClass(alert) === 'danger'">
-              <td class="px-3 py-3 font-medium text-slate-900">{{ alert.title }}</td>
-              <td class="px-3 py-3 text-slate-600">{{ alert.user.nom }} {{ alert.user.prenom }}</td>
-              <td class="px-3 py-3">
-                <span class="rounded-full px-2 py-1 text-xs font-semibold"
-                  [class.bg-emerald-100]="alert.priority === 'LOW'"
-                  [class.text-emerald-700]="alert.priority === 'LOW'"
-                  [class.bg-amber-100]="alert.priority === 'MEDIUM'"
-                  [class.text-amber-700]="alert.priority === 'MEDIUM'"
-                  [class.bg-orange-100]="alert.priority === 'HIGH'"
-                  [class.text-orange-700]="alert.priority === 'HIGH'"
-                  [class.bg-rose-100]="alert.priority === 'CRITICAL'"
-                  [class.text-rose-700]="alert.priority === 'CRITICAL'">
+            <tr class="group border-b border-line/60 transition-colors hover:bg-surface-2/60"
+              [class.opacity-60]="getRowToneClass(alert) === 'muted'">
+              <td class="px-4 py-3.5">
+                <p class="font-medium text-ink">{{ alert.title }}</p>
+                <p class="mono mt-0.5 text-[0.7rem] text-faint">#A-{{ alert.id }}</p>
+              </td>
+              <td class="px-4 py-3.5 text-muted">{{ alert.user.nom }} {{ alert.user.prenom }}</td>
+              <td class="px-4 py-3.5">
+                <span class="chip"
+                  [class.chip-ok]="alert.priority === 'LOW'"
+                  [class.chip-amber]="alert.priority === 'MEDIUM' || alert.priority === 'HIGH'"
+                  [class.chip-crit]="alert.priority === 'CRITICAL'">
                   {{ alert.priority }}
                 </span>
               </td>
-              <td class="px-3 py-3 text-slate-600">{{ alert.category.name }}</td>
-              <td class="px-3 py-3">
-                <span class="rounded-full px-2 py-1 text-xs font-semibold"
-                  [class.bg-slate-100]="alert.status === 'NEW'"
-                  [class.text-slate-700]="alert.status === 'NEW'"
-                  [class.bg-amber-100]="alert.status === 'IN_PROGRESS'"
-                  [class.text-amber-700]="alert.status === 'IN_PROGRESS'"
-                  [class.bg-emerald-100]="alert.status === 'RESOLVED'"
-                  [class.text-emerald-700]="alert.status === 'RESOLVED'"
-                  [class.bg-rose-100]="alert.status === 'REJECTED'"
-                  [class.text-rose-700]="alert.status === 'REJECTED'">
+              <td class="px-4 py-3.5 text-muted">{{ alert.category.name }}</td>
+              <td class="px-4 py-3.5">
+                <span class="chip"
+                  [class.chip-neutral]="alert.status === 'NEW'"
+                  [class.chip-amber]="alert.status === 'IN_PROGRESS'"
+                  [class.chip-ok]="alert.status === 'RESOLVED'"
+                  [class.chip-crit]="alert.status === 'REJECTED'">
+                  <span class="dot"
+                    [class.dot-muted]="alert.status === 'NEW'"
+                    [class.dot-amber]="alert.status === 'IN_PROGRESS'"
+                    [class.dot-ok]="alert.status === 'RESOLVED'"
+                    [class.dot-crit]="alert.status === 'REJECTED'"></span>
                   {{ alert.status }}
                 </span>
               </td>
-              <td class="px-3 py-3">
-                <div class="flex items-center justify-end gap-2">
-                  <button class="rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
-                    title="Details"
-                    (click)="view.emit(alert)">
-                    Details
-                  </button>
+              <td class="px-4 py-3.5">
+                <div class="flex items-center justify-end gap-2 opacity-70 transition-opacity group-hover:opacity-100">
+                  <button class="btn btn-ghost btn-sm" title="Détails" (click)="view.emit(alert)">Détails</button>
                   @if (canManage(alert)) {
-                    <button class="rounded border border-sky-200 px-2 py-1 text-xs text-sky-700 hover:bg-sky-50"
-                      title="Add Media"
-                      (click)="addMedia.emit(alert)">
-                      Add media
-                    </button>
-                    <button class="rounded border border-amber-200 px-2 py-1 text-xs text-amber-700 hover:bg-amber-50"
-                      title="Modifier"
-                      (click)="edit.emit(alert)">
-                      Modify
-                    </button>
-                    <button class="rounded border border-rose-200 px-2 py-1 text-xs text-rose-700 hover:bg-rose-50"
-                      title="Supprimer"
-                      (click)="remove.emit(alert.id)">
-                      Delete
-                    </button>
+                    <button class="btn btn-ghost btn-sm" title="Ajouter média" (click)="addMedia.emit(alert)">Média</button>
+                    <button class="btn btn-ghost btn-sm" title="Modifier" (click)="edit.emit(alert)">Modifier</button>
+                    <button class="btn btn-danger btn-sm" title="Supprimer" (click)="remove.emit(alert.id)">Suppr.</button>
                   }
                 </div>
               </td>
@@ -94,21 +76,13 @@
     </table>
   </div>
 
-  <div class="flex items-center justify-between border-t border-slate-200 px-4 py-3">
-    <p class="text-xs text-slate-500">
-      Page {{ page.number + 1 }} / {{ page.totalPages || 1 }} - {{ page.totalElements }} éléments
+  <div class="flex items-center justify-between border-t border-line px-4 py-3">
+    <p class="mono text-[0.7rem] text-faint">
+      PAGE {{ page.number + 1 }} / {{ page.totalPages || 1 }} · {{ page.totalElements }} ÉLÉMENTS
     </p>
     <div class="flex items-center gap-2">
-      <button class="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 disabled:opacity-40"
-        [disabled]="page.number === 0"
-        (click)="pageChange.emit(page.number - 1)">
-        Précédent
-      </button>
-      <button class="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 disabled:opacity-40"
-        [disabled]="page.number + 1 >= page.totalPages"
-        (click)="pageChange.emit(page.number + 1)">
-        Suivant
-      </button>
+      <button class="btn btn-ghost btn-sm" [disabled]="page.number === 0" (click)="pageChange.emit(page.number - 1)">Précédent</button>
+      <button class="btn btn-ghost btn-sm" [disabled]="page.number + 1 >= page.totalPages" (click)="pageChange.emit(page.number + 1)">Suivant</button>
     </div>
   </div>
 </div>

@@ -1,87 +1,79 @@
-<div class="fixed inset-0 z-40 bg-black/50 p-4" (click)="close.emit()">
-  <div class="mx-auto mt-6 max-h-[90vh] max-w-3xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl" (click)="$event.stopPropagation()">
-    <div class="mb-4 flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-slate-900">Détails alerte #{{ alert.id }}</h3>
-      <button class="rounded border border-slate-200 px-2 py-1 text-xs" (click)="close.emit()">X</button>
+<div class="modal-backdrop" (click)="close.emit()">
+  <div class="modal-card animate-rise max-w-3xl" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-line px-6 py-4">
+      <div>
+        <p class="microlabel mb-1">Signalement</p>
+        <h3 class="mono text-lg font-bold text-ink">#A-{{ alert.id }}</h3>
+      </div>
+      <button class="modal-close" (click)="close.emit()">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
     </div>
 
-    <div class="grid gap-3 md:grid-cols-2">
-      <p><strong>Title:</strong> {{ alert.title }}</p>
-      <p><strong>Status:</strong> {{ alert.status }}</p>
-      <p><strong>Priority:</strong> {{ alert.priority }}</p>
-      <p><strong>Category:</strong> {{ alert.category.name }}</p>
-      <p class="md:col-span-2"><strong>Description:</strong> {{ alert.description }}</p>
-      <p><strong>Nom prenom:</strong> {{ alert.user.nom }} {{ alert.user.prenom }}</p>
-      <p><strong>Address:</strong> {{ alert.address || '-' }}</p>
-      <p><strong>Latitude:</strong> {{ alert.latitude }}</p>
-      <p><strong>Longitude:</strong> {{ alert.longitude }}</p>
-    </div>
-
-    <!-- Images -->
-    @if (alert.images.length > 0) {
-      <div class="mt-4">
-        <p class="mb-2 text-sm font-semibold text-slate-700">Photos ({{ alert.images.length }})</p>
-        <div class="flex flex-wrap gap-2">
-          @for (img of alert.images; track img) {
-            <div class="group relative">
-              <img
-                [src]="img"
-                alt="photo"
-                class="h-28 w-28 rounded-lg object-cover border border-slate-200"
-                (error)="$any($event.target).src = imgPlaceholder"
-              />
-              @if (canManage) {
-                <button
-                  class="absolute right-1 top-1 hidden rounded-full bg-rose-600 p-1 text-white shadow group-hover:flex items-center justify-center"
-                  title="Supprimer cette photo"
-                  (click)="removeImage.emit(img)"
-                >
-                  <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </button>
-              }
-            </div>
-          }
-        </div>
+    <div class="max-h-[70vh] overflow-y-auto p-6">
+      <h4 class="text-xl font-bold tracking-tight text-ink">{{ alert.title }}</h4>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <span class="chip"
+          [class.chip-neutral]="alert.status === 'NEW'" [class.chip-amber]="alert.status === 'IN_PROGRESS'"
+          [class.chip-ok]="alert.status === 'RESOLVED'" [class.chip-crit]="alert.status === 'REJECTED'">{{ alert.status }}</span>
+        <span class="chip"
+          [class.chip-ok]="alert.priority === 'LOW'" [class.chip-info]="alert.priority === 'MEDIUM'"
+          [class.chip-amber]="alert.priority === 'HIGH'" [class.chip-crit]="alert.priority === 'CRITICAL'">{{ alert.priority }}</span>
+        <span class="chip chip-neutral">{{ alert.category.name }}</span>
       </div>
-    }
 
-    <!-- Videos -->
-    @if (alert.videos.length > 0) {
-      <div class="mt-4">
-        <p class="mb-2 text-sm font-semibold text-slate-700">Vidéos ({{ alert.videos.length }})</p>
-        <div class="flex flex-wrap gap-2">
-          @for (vid of alert.videos; track vid) {
-            <div class="group relative">
-              <video
-                [src]="vid"
-                class="h-28 w-40 rounded-lg border border-slate-200 object-cover"
-                controls
-              ></video>
-              @if (canManage) {
-                <button
-                  class="absolute right-1 top-1 hidden rounded-full bg-rose-600 p-1 text-white shadow group-hover:flex items-center justify-center"
-                  title="Supprimer cette vidéo"
-                  (click)="removeVideo.emit(vid)"
-                >
-                  <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </button>
-              }
-            </div>
-          }
+      <p class="mt-4 text-sm leading-relaxed text-ink-dim">{{ alert.description }}</p>
+
+      <dl class="mt-5 grid gap-x-6 gap-y-3 border-t border-line pt-5 sm:grid-cols-2">
+        <div><dt class="microlabel mb-1">Citoyen</dt><dd class="text-sm text-ink-dim">{{ alert.user.nom }} {{ alert.user.prenom }}</dd></div>
+        <div><dt class="microlabel mb-1">Adresse</dt><dd class="text-sm text-ink-dim">{{ alert.address || '—' }}</dd></div>
+        <div><dt class="microlabel mb-1">Latitude</dt><dd class="mono text-sm text-ink-dim">{{ alert.latitude }}</dd></div>
+        <div><dt class="microlabel mb-1">Longitude</dt><dd class="mono text-sm text-ink-dim">{{ alert.longitude }}</dd></div>
+      </dl>
+
+      <!-- Images -->
+      @if (alert.images.length > 0) {
+        <div class="mt-6">
+          <p class="microlabel mb-2">Photos ({{ alert.images.length }})</p>
+          <div class="flex flex-wrap gap-2">
+            @for (img of alert.images; track img) {
+              <div class="group relative">
+                <img [src]="img" alt="photo" class="h-28 w-28 rounded-lg border border-line object-cover" (error)="$any($event.target).src = imgPlaceholder" />
+                @if (canManage) {
+                  <button class="absolute right-1 top-1 hidden h-6 w-6 items-center justify-center rounded-full bg-crit text-white shadow group-hover:flex" title="Supprimer cette photo" (click)="removeImage.emit(img)">
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                }
+              </div>
+            }
+          </div>
         </div>
-      </div>
-    }
+      }
 
-    <div class="mt-4 overflow-hidden rounded-lg border border-slate-200">
-      <iframe
-        title="map"
-        class="h-64 w-full"
-        [src]="safeMapUrl(alert.latitude, alert.longitude)"
-      ></iframe>
+      <!-- Videos -->
+      @if (alert.videos.length > 0) {
+        <div class="mt-5">
+          <p class="microlabel mb-2">Vidéos ({{ alert.videos.length }})</p>
+          <div class="flex flex-wrap gap-2">
+            @for (vid of alert.videos; track vid) {
+              <div class="group relative">
+                <video [src]="vid" class="h-28 w-40 rounded-lg border border-line object-cover" controls></video>
+                @if (canManage) {
+                  <button class="absolute right-1 top-1 hidden h-6 w-6 items-center justify-center rounded-full bg-crit text-white shadow group-hover:flex" title="Supprimer cette vidéo" (click)="removeVideo.emit(vid)">
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="mt-6 overflow-hidden rounded-lg border border-line">
+        <iframe title="map" class="h-64 w-full" [src]="safeMapUrl(alert.latitude, alert.longitude)"></iframe>
+      </div>
     </div>
   </div>
 </div>

@@ -1,181 +1,104 @@
-<div class="space-y-6">
+<div class="animate-fade space-y-5">
 
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="panel flex items-center justify-between p-6">
     <div>
-      <h2 class="text-xl font-bold text-gray-900">Types de problèmes</h2>
-      <p class="text-sm text-gray-500 mt-0.5">Gérez les catégories utilisées pour les signalements.</p>
+      <p class="microlabel mb-2">Référentiel · catégories</p>
+      <h2 class="text-2xl font-bold tracking-tight text-ink">Types de problèmes</h2>
+      <p class="mt-1 text-sm text-muted">Gérez les catégories utilisées pour les signalements.</p>
     </div>
     @if (!showCreateForm) {
-      <button
-        (click)="openCreate()"
-        class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
+      <button (click)="openCreate()" class="btn btn-signal">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         Nouveau type
       </button>
     }
   </div>
 
-  <!-- Feedback messages -->
-  @if (successMessage()) {
-    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-      {{ successMessage() }}
-    </div>
-  }
-  @if (errorMessage()) {
-    <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-      {{ errorMessage() }}
-    </div>
-  }
+  @if (successMessage()) { <div class="banner banner-ok">{{ successMessage() }}</div> }
+  @if (errorMessage()) { <div class="banner banner-crit">{{ errorMessage() }}</div> }
 
   <!-- Create form -->
   @if (showCreateForm) {
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-      <h3 class="font-semibold text-gray-800 mb-4">Nouveau type de problème</h3>
+    <div class="panel p-6">
+      <p class="microlabel mb-4" style="color:var(--color-ink-dim)">Nouveau type de problème</p>
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nom <span class="text-red-500">*</span></label>
-          <input
-            [(ngModel)]="createName"
-            type="text"
-            maxlength="100"
-            placeholder="Ex: Voirie, Éclairage public..."
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-          />
+          <label class="field-label">Nom <span class="text-crit">*</span></label>
+          <input [(ngModel)]="createName" type="text" maxlength="100" placeholder="Ex: Voirie, Éclairage public…" class="field" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Icône <span class="text-gray-400 font-normal">(optionnel)</span></label>
-          <input
-            [(ngModel)]="createIcon"
-            type="text"
-            placeholder="Ex: 🛣️ ou road-icon"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-          />
+          <label class="field-label">Icône <span class="text-faint">(optionnel)</span></label>
+          <input [(ngModel)]="createIcon" type="text" placeholder="Ex: 🛣️ ou road-icon" class="field" />
         </div>
         <div class="flex gap-3">
-          <button
-            (click)="submitCreate()"
-            [disabled]="!createName.trim() || saving"
-            class="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ saving ? 'Enregistrement…' : 'Créer' }}
-          </button>
-          <button
-            (click)="cancelCreate()"
-            class="border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-            Annuler
-          </button>
+          <button (click)="submitCreate()" [disabled]="!createName.trim() || saving" class="btn btn-signal">{{ saving ? 'Enregistrement…' : 'Créer' }}</button>
+          <button (click)="cancelCreate()" class="btn btn-ghost">Annuler</button>
         </div>
       </div>
     </div>
   }
 
-  <!-- Delete confirmation modal -->
+  <!-- Delete confirmation -->
   @if (deletingId !== null) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
-        <h3 class="font-semibold text-gray-900 mb-2">Supprimer ce type ?</h3>
-        <p class="text-sm text-gray-500 mb-5">Cette action est irréversible. Les signalements existants conserveront leur catégorie.</p>
+    <div class="modal-backdrop z-50 items-center" (click)="cancelDelete()">
+      <div class="modal-card animate-rise max-w-sm p-6" (click)="$event.stopPropagation()">
+        <p class="microlabel mb-2" style="color:var(--color-crit)">Action irréversible</p>
+        <h3 class="mb-2 font-bold text-ink">Supprimer ce type ?</h3>
+        <p class="mb-5 text-sm text-muted">Cette action est irréversible. Les signalements existants conserveront leur catégorie.</p>
         <div class="flex gap-3">
-          <button
-            (click)="submitDelete()"
-            [disabled]="saving"
-            class="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50">
-            {{ saving ? 'Suppression…' : 'Supprimer' }}
-          </button>
-          <button
-            (click)="cancelDelete()"
-            class="flex-1 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-            Annuler
-          </button>
+          <button (click)="submitDelete()" [disabled]="saving" class="btn btn-danger flex-1">{{ saving ? 'Suppression…' : 'Supprimer' }}</button>
+          <button (click)="cancelDelete()" class="btn btn-ghost flex-1">Annuler</button>
         </div>
       </div>
     </div>
   }
 
   <!-- Types list -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+  <div class="panel overflow-hidden">
     @if (loading()) {
-      <div class="p-6 space-y-3">
-        @for (_ of [1,2,3,4,5]; track $index) {
-          <div class="h-12 bg-gray-100 rounded-lg animate-pulse"></div>
-        }
+      <div class="space-y-3 p-6">
+        @for (_ of [1,2,3,4,5]; track $index) { <div class="h-12 animate-pulse rounded-lg bg-surface-2"></div> }
       </div>
     } @else if (types().length === 0) {
-      <div class="flex flex-col items-center justify-center py-16 text-center px-4">
-        <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <svg class="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-          </svg>
-        </div>
-        <p class="text-gray-600 font-medium mb-1">Aucun type défini</p>
-        <p class="text-sm text-gray-400">Créez le premier type de problème.</p>
+      <div class="flex flex-col items-center justify-center px-4 py-16 text-center">
+        <span class="mb-4 grid h-14 w-14 place-items-center rounded-full border border-line bg-surface">
+          <svg class="h-7 w-7 text-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        </span>
+        <p class="font-medium text-ink-dim">Aucun type défini</p>
+        <p class="mt-1 text-sm text-faint">Créez le premier type de problème.</p>
       </div>
     } @else {
       <table class="min-w-full text-sm">
         <thead>
-          <tr class="bg-gray-50 border-b border-gray-100 text-left text-xs text-gray-500 uppercase tracking-wide">
-            <th class="px-5 py-3 font-medium w-12">#</th>
-            <th class="px-5 py-3 font-medium">Nom</th>
-            <th class="px-5 py-3 font-medium">Icône</th>
-            <th class="px-5 py-3 font-medium text-right">Actions</th>
+          <tr class="border-b border-line text-left">
+            <th class="microlabel w-12 px-5 py-3.5 font-normal">#</th>
+            <th class="microlabel px-5 py-3.5 font-normal">Nom</th>
+            <th class="microlabel px-5 py-3.5 font-normal">Icône</th>
+            <th class="microlabel px-5 py-3.5 text-right font-normal">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-50">
+        <tbody class="divide-y divide-line/60">
           @for (type of types(); track type.id) {
-            <tr class="hover:bg-gray-50 transition-colors">
+            <tr class="transition-colors hover:bg-surface-2/60">
               @if (editingId === type.id) {
-                <!-- Inline edit row -->
-                <td class="px-5 py-3 text-gray-400">{{ type.id }}</td>
-                <td class="px-5 py-3">
-                  <input
-                    [(ngModel)]="editName"
-                    type="text"
-                    maxlength="100"
-                    class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-gray-900"
-                  />
-                </td>
-                <td class="px-5 py-3">
-                  <input
-                    [(ngModel)]="editIcon"
-                    type="text"
-                    class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-gray-900"
-                  />
-                </td>
+                <td class="mono px-5 py-3 text-faint">{{ type.id }}</td>
+                <td class="px-5 py-3"><input [(ngModel)]="editName" type="text" maxlength="100" class="field py-1.5" /></td>
+                <td class="px-5 py-3"><input [(ngModel)]="editIcon" type="text" class="field py-1.5" /></td>
                 <td class="px-5 py-3 text-right">
                   <div class="flex items-center justify-end gap-2">
-                    <button
-                      (click)="submitEdit()"
-                      [disabled]="!editName.trim() || saving"
-                      class="text-xs bg-gray-900 text-white px-3 py-1.5 rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors">
-                      {{ saving ? '…' : 'Enregistrer' }}
-                    </button>
-                    <button
-                      (click)="cancelEdit()"
-                      class="text-xs border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
-                      Annuler
-                    </button>
+                    <button (click)="submitEdit()" [disabled]="!editName.trim() || saving" class="btn btn-signal btn-sm">{{ saving ? '…' : 'Enregistrer' }}</button>
+                    <button (click)="cancelEdit()" class="btn btn-ghost btn-sm">Annuler</button>
                   </div>
                 </td>
               } @else {
-                <!-- Read row -->
-                <td class="px-5 py-3.5 text-gray-400">{{ type.id }}</td>
-                <td class="px-5 py-3.5 font-medium text-gray-800">{{ type.name }}</td>
-                <td class="px-5 py-3.5 text-gray-500">{{ type.icon || '—' }}</td>
+                <td class="mono px-5 py-3.5 text-faint">{{ type.id }}</td>
+                <td class="px-5 py-3.5 font-medium text-ink">{{ type.name }}</td>
+                <td class="px-5 py-3.5 text-muted">{{ type.icon || '—' }}</td>
                 <td class="px-5 py-3.5 text-right">
                   <div class="flex items-center justify-end gap-2">
-                    <button
-                      (click)="openEdit(type)"
-                      class="text-xs border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
-                      Modifier
-                    </button>
-                    <button
-                      (click)="confirmDelete(type.id)"
-                      class="text-xs border border-red-200 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
-                      Supprimer
-                    </button>
+                    <button (click)="openEdit(type)" class="btn btn-ghost btn-sm">Modifier</button>
+                    <button (click)="confirmDelete(type.id)" class="btn btn-danger btn-sm">Supprimer</button>
                   </div>
                 </td>
               }
@@ -185,5 +108,4 @@
       </table>
     }
   </div>
-
 </div>
