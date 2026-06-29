@@ -5,6 +5,7 @@ import { AlertKpi } from '../../../../models/kpi.models';
   selector: 'app-kpi-alert-section',
   standalone: true,
   imports: [],
+  host: { class: 'block h-full' },
   templateUrl: './kpi-alert-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
