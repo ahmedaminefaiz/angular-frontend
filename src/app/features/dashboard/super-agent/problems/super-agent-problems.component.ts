@@ -35,6 +35,7 @@ export class SuperAgentProblemsComponent implements OnInit {
 
   readonly editingProblem = signal<ProblemResponse | null>(null);
   readonly expandedId = signal<number | null>(null);
+  readonly menuOpenId = signal<number | null>(null);
   readonly agents = signal<UserSummaryResponse[]>([]);
 
   readonly showInterventionFormForProblem = signal<number | null>(null);
@@ -100,6 +101,10 @@ export class SuperAgentProblemsComponent implements OnInit {
     if (!wasExpanded) {
       this.loadInterventions(id);
     }
+  }
+
+  toggleMenu(id: number): void {
+    this.menuOpenId.update(cur => (cur === id ? null : id));
   }
 
   loadInterventions(problemId: number): void {
