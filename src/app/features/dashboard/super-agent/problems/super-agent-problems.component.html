@@ -27,7 +27,7 @@
   } @else {
     <div class="space-y-3">
       @for (problem of filteredProblems; track problem.id) {
-        <div class="panel overflow-hidden">
+        <div class="panel">
 
           <!-- Main row -->
           <div class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -43,7 +43,7 @@
               </div>
             </div>
 
-            <div class="flex shrink-0 flex-wrap items-center justify-start gap-2 sm:justify-end">
+            <div class="flex shrink-0 flex-wrap items-center justify-start gap-2 sm:flex-nowrap sm:justify-end">
               @if (nextStatuses(problem.status).length > 0) {
                 <select (change)="changeStatus(problem, $any($event.target).value); $any($event.target).value = ''" class="field btn-sm max-w-[11rem] py-1.5">
                   <option value="">Changer statut</option>
@@ -54,18 +54,36 @@
                 <button (click)="openInterventionForm(problem.id)" class="btn btn-signal btn-sm">+ Intervention</button>
               }
               <button (click)="toggleExpand(problem.id)" class="btn btn-ghost btn-sm">{{ expandedId() === problem.id ? 'Masquer' : 'Détails' }}</button>
+
+              <!-- Overflow menu for secondary actions -->
               @if (problem.status === 'NEW' || problem.status === 'IN_PROGRESS') {
-                <button (click)="openEdit(problem)" class="btn btn-ghost btn-sm">Modifier</button>
-              }
-              @if (problem.status === 'NEW') {
-                <button (click)="deleteProblem(problem)" class="btn btn-danger btn-sm">Supprimer</button>
+                <div class="relative">
+                  <button (click)="toggleMenu(problem.id)" class="btn btn-ghost btn-sm px-2" aria-label="Plus d'actions" title="Plus d'actions">
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4z"/></svg>
+                  </button>
+                  @if (menuOpenId() === problem.id) {
+                    <div class="fixed inset-0 z-30" (click)="menuOpenId.set(null)"></div>
+                    <div class="animate-rise absolute right-0 top-full z-40 mt-1.5 w-44 overflow-hidden rounded-lg border border-line-strong bg-surface shadow-2xl">
+                      <button (click)="openEdit(problem); menuOpenId.set(null)" class="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm text-ink-dim transition-colors hover:bg-surface-2 hover:text-ink">
+                        <svg class="h-4 w-4 text-faint" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        Modifier
+                      </button>
+                      @if (problem.status === 'NEW') {
+                        <button (click)="deleteProblem(problem); menuOpenId.set(null)" class="flex w-full items-center gap-2.5 border-t border-line px-3 py-2.5 text-left text-sm text-crit transition-colors hover:bg-[rgba(255,81,71,0.1)]">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                          Supprimer
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
               }
             </div>
           </div>
 
           <!-- Expanded -->
           @if (expandedId() === problem.id) {
-            <div class="space-y-4 border-t border-line bg-canvas-2/60 px-5 py-4">
+            <div class="space-y-4 rounded-b-[13px] border-t border-line bg-canvas-2/60 px-5 py-4">
 
               <!-- Criticality -->
               <div class="flex items-center gap-3 rounded-lg border border-line bg-surface px-4 py-2.5">
