@@ -24,6 +24,18 @@ export class AdminProblemTypesComponent implements OnInit {
   editName = '';
   editIcon = '';
 
+  /**
+   * Curated palette of emojis relevant to urban problems. Admins pick one
+   * visually instead of typing an icon name — no icon library knowledge needed,
+   * and the emoji is stored as-is in the existing `icon` string column.
+   */
+  readonly emojiOptions: readonly string[] = [
+    '🛣️', '🕳️', '🚦', '🚧', '💡', '⚡', '💧', '🚰', '🚱', '🔥',
+    '🧯', '🗑️', '♻️', '🧹', '🌳', '🌊', '🌫️', '💨', '📢', '🔊',
+    '🚨', '⚠️', '🅿️', '🚌', '🚸', '🐕', '🏚️', '🏗️', '🌉', '🚇',
+    '🏥', '🛑', '🪧', '🚽', '❄️'
+  ];
+
   deletingId: number | null = null;
   saving = false;
 
@@ -31,6 +43,16 @@ export class AdminProblemTypesComponent implements OnInit {
 
   ngOnInit() {
     this.loadTypes();
+  }
+
+  /** Toggle emoji in the create form (click again to clear). */
+  selectCreateIcon(emoji: string) {
+    this.createIcon = this.createIcon === emoji ? '' : emoji;
+  }
+
+  /** Toggle emoji in the edit form (click again to clear). */
+  selectEditIcon(emoji: string) {
+    this.editIcon = this.editIcon === emoji ? '' : emoji;
   }
 
   openCreate() {

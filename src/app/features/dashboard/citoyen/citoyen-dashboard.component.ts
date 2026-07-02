@@ -1,20 +1,21 @@
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import {
   AlertResponse,
   ApiErrorResponse,
-  ApiPage,
-  CreateAlertRequest
+  ApiPage
 } from '../../../models/alert.models';
 import { ProblemResponse } from '../../../models/problem.models';
 import { TokenService } from '../../../core/services/token.service';
 import { AlertsService } from '../../../services/alerts.service';
+import { CloudinaryService } from '../../../services/cloudinary.service';
 import { ProblemsService } from '../../../services/problems.service';
 import { ProblemTypesService } from '../../../services/problem-types.service';
 import { AlertTableComponent } from './alert-table.component';
 import { AlertDetailModalComponent } from './alert-detail-modal.component';
-import { AlertFormComponent } from './alert-form.component';
+import { AlertFormComponent, AlertFormSubmit, StagedMedia } from './alert-form.component';
 import { MediaFormComponent, MediaSubmitPayload } from './media-form.component';
 import { ApprovedAlertsComponent } from './approved-alerts.component';
 import { NotificationListComponent } from './notification-list.component';
@@ -65,6 +66,7 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly alertsService: AlertsService,
+    private readonly cloudinaryService: CloudinaryService,
     private readonly problemsService: ProblemsService,
     private readonly problemTypesService: ProblemTypesService,
     private readonly tokenService: TokenService,
@@ -153,31 +155,47 @@ export class CitoyenDashboardComponent implements OnInit, OnDestroy {
     this.selectedAlert = null;
   }
 
-  onAlertFormSubmitted(payload: CreateAlertRequest): void {
+  onAlertFormSubmitted(result: AlertFormSubmit): void {
     this.alertFormError.set('');
-    if (this.editingAlert) {
-      this.subscriptions.add(
-        this.alertsService.updateAlert(this.editingAlert.id, payload).subscribe({
-          next: () => {
-            this.closeAllModals();
-            this.successMessage.set('Votre alerte est modifiée avec succès');
-            this.loadAllTabsData();
-          },
-          error: (err) => this.alertFormError.set(this.extractApiError(err))
-        })
-      );
-    } else {
-      this.subscriptions.add(
-        this.alertsService.createAlert(payload).subscribe({
-          next: () => {
-            this.closeAllModals();
-            this.successMessage.set('Votre alerte est créée avec succès');
-            this.loadAllTabsData();
-          },
-          error: (err) => this.alertFormError.set(this.extractApiError(err))
-        })
-      );
-    }
+    const { payload, newMedia } = result;
+    const editing = this.editingAlert;
+    const save$ = editing
+      ? this.alertsService.updateAlert(editing.id, payload)
+      : this.alertsService.createAlert(payload);
+    const successText = editing
+      ? 'Votre alerte est modifiée avec succès'
+      : 'Votre alerte est créée avec succès';
+
+    this.subscriptions.add(
+      save$.pipe(
+        switchMap((saved) => this.uploadAndAttachMedia(saved.id, newMedia))
+      ).subscribe({
+        next: () => {
+          this.closeAllModals();
+          this.successMessage.set(successText);
+          this.loadAllTabsData();
+        },
+        error: (err) => this.alertFormError.set(this.extractApiError(err))
+      })
+    );
+  }
+
+  /**
+   * Uploads each staged file to Cloudinary then attaches its URL to the alert.
+   * Runs after the alert is saved so we have its ID for the media folder.
+   */
+  private uploadAndAttachMedia(alertId: number, media: StagedMedia[]): Observable<unknown> {
+    if (!media.length) return of(null);
+    const calls = media.map((m) =>
+      this.cloudinaryService.upload(m.file, m.type, `alert/${alertId}/${m.type}`).pipe(
+        switchMap((url) =>
+          m.type === 'video'
+            ? this.alertsService.addVideo(alertId, { mediaUrl: url })
+            : this.alertsService.addImage(alertId, { mediaUrl: url })
+        )
+      )
+    );
+    return forkJoin(calls);
   }
 
   onMediaFormSubmitted(payload: MediaSubmitPayload): void {
