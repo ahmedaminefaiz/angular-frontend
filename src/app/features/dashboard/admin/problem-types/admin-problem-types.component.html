@@ -29,7 +29,18 @@
         </div>
         <div>
           <label class="field-label">Icône <span class="text-faint">(optionnel)</span></label>
-          <input [(ngModel)]="createIcon" type="text" placeholder="Ex: 🛣️ ou road-icon" class="field" />
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-line bg-surface text-xl">{{ createIcon || '—' }}</span>
+            <div class="flex flex-wrap gap-1">
+              @for (emoji of emojiOptions; track emoji) {
+                <button type="button" (click)="selectCreateIcon(emoji)"
+                  class="grid h-9 w-9 place-items-center rounded-lg border text-lg transition-colors"
+                  [class.border-signal]="createIcon === emoji" [class.bg-signal-soft]="createIcon === emoji"
+                  [class.border-line]="createIcon !== emoji" [class.hover:bg-surface-2]="createIcon !== emoji">{{ emoji }}</button>
+              }
+            </div>
+          </div>
+          <p class="mt-1.5 text-xs text-faint">Cliquez sur une icône pour la choisir (cliquez à nouveau pour la retirer).</p>
         </div>
         <div class="flex gap-3">
           <button (click)="submitCreate()" [disabled]="!createName.trim() || saving" class="btn btn-signal">{{ saving ? 'Enregistrement…' : 'Créer' }}</button>
@@ -84,7 +95,19 @@
               @if (editingId === type.id) {
                 <td class="mono px-5 py-3 text-faint">{{ type.id }}</td>
                 <td class="px-5 py-3"><input [(ngModel)]="editName" type="text" maxlength="100" class="field py-1.5" /></td>
-                <td class="px-5 py-3"><input [(ngModel)]="editIcon" type="text" class="field py-1.5" /></td>
+                <td class="px-5 py-3">
+                  <div class="flex w-72 items-start gap-2">
+                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-line bg-surface text-lg">{{ editIcon || '—' }}</span>
+                    <div class="flex flex-wrap gap-1">
+                      @for (emoji of emojiOptions; track emoji) {
+                        <button type="button" (click)="selectEditIcon(emoji)"
+                          class="grid h-8 w-8 place-items-center rounded-md border text-base transition-colors"
+                          [class.border-signal]="editIcon === emoji" [class.bg-signal-soft]="editIcon === emoji"
+                          [class.border-line]="editIcon !== emoji" [class.hover:bg-surface-2]="editIcon !== emoji">{{ emoji }}</button>
+                      }
+                    </div>
+                  </div>
+                </td>
                 <td class="px-5 py-3 text-right">
                   <div class="flex items-center justify-end gap-2">
                     <button (click)="submitEdit()" [disabled]="!editName.trim() || saving" class="btn btn-signal btn-sm">{{ saving ? '…' : 'Enregistrer' }}</button>
@@ -94,7 +117,7 @@
               } @else {
                 <td class="mono px-5 py-3.5 text-faint">{{ type.id }}</td>
                 <td class="px-5 py-3.5 font-medium text-ink">{{ type.name }}</td>
-                <td class="px-5 py-3.5 text-muted">{{ type.icon || '—' }}</td>
+                <td class="px-5 py-3.5 text-lg">{{ type.icon || '—' }}</td>
                 <td class="px-5 py-3.5 text-right">
                   <div class="flex items-center justify-end gap-2">
                     <button (click)="openEdit(type)" class="btn btn-ghost btn-sm">Modifier</button>

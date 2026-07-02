@@ -61,6 +61,11 @@ export class AlertsService {
     return this.http.delete<AlertResponse>(`${this.base}/${alertId}/videos`, { params });
   }
 
+  changeCategory(alertId: number, categoryId: number): Observable<AlertResponse> {
+    const params = new HttpParams().set('categoryId', String(categoryId));
+    return this.http.patch<AlertResponse>(`${this.base}/${alertId}/category`, null, { params });
+  }
+
   getUnqualifiedAlerts(page = 0, size = 10): Observable<ApiPage<AlertResponse>> {
     const params = this.createPageParams(page, size);
     return this.http.get<ApiPage<AlertResponse>>(`${this.base}/unqualified`, { params });

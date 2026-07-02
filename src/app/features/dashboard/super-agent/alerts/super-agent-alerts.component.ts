@@ -1,10 +1,11 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
-import { AlertResponse, ApiPage } from '../../../../models/alert.models';
+import { AlertResponse, ApiPage, ProblemTypeSummary } from '../../../../models/alert.models';
 import { ProblemResponse } from '../../../../models/problem.models';
 import { UserSummaryResponse } from '../../../../models/user-management.models';
 import { AlertsService } from '../../../../services/alerts.service';
+import { ProblemTypesService } from '../../../../services/problem-types.service';
 import { UserManagementService } from '../../../../services/user-management.service';
 import { SimilarAlertsPanelComponent } from './similar-alerts-panel.component';
 import { QualifyFormComponent } from './qualify-form.component';
@@ -28,11 +29,19 @@ export class SuperAgentAlertsComponent implements OnInit {
   readonly showQualifyForm = signal(false);
   readonly agents = signal<UserSummaryResponse[]>([]);
 
+  // Media viewer + re-classification
+  readonly categories = signal<ProblemTypeSummary[]>([]);
+  readonly detailAlert = signal<AlertResponse | null>(null);
+  readonly reclassifyCategoryId = signal<number | null>(null);
+  readonly reclassifying = signal(false);
+  readonly detailError = signal('');
+
   searchTerm = '';
   currentPage = 0;
 
   constructor(
     private readonly alertsService: AlertsService,
+    private readonly problemTypesService: ProblemTypesService,
     private readonly userManagementService: UserManagementService
   ) {}
 
@@ -41,6 +50,54 @@ export class SuperAgentAlertsComponent implements OnInit {
     this.userManagementService.getActiveAgents().subscribe({
       next: (list) => this.agents.set(list),
       error: () => {}
+    });
+    this.problemTypesService.getAll().subscribe({
+      next: (list) => this.categories.set(list),
+      error: () => {}
+    });
+  }
+
+  openDetail(alert: AlertResponse): void {
+    this.detailAlert.set(alert);
+    this.reclassifyCategoryId.set(alert.category.id);
+    this.detailError.set('');
+  }
+
+  closeDetail(): void {
+    if (this.reclassifying()) return;
+    this.detailAlert.set(null);
+  }
+
+  reclassify(): void {
+    const alert = this.detailAlert();
+    const categoryId = this.reclassifyCategoryId();
+    if (!alert || categoryId == null || categoryId === alert.category.id) return;
+    this.reclassifying.set(true);
+    this.detailError.set('');
+    this.alertsService.changeCategory(alert.id, categoryId).subscribe({
+      next: (updated) => {
+        this.reclassifying.set(false);
+        this.detailAlert.set(updated);
+        this.patchAlertInPage(updated);
+        this.flash(`Catégorie du signalement #A-${updated.id} mise à jour.`);
+      },
+      error: () => {
+        this.reclassifying.set(false);
+        this.detailError.set('Impossible de modifier la catégorie. Réessayez.');
+      }
+    });
+  }
+
+  private patchAlertInPage(updated: AlertResponse): void {
+    this.alertsPage.update((page) => ({
+      ...page,
+      content: page.content.map((a) => (a.id === updated.id ? updated : a))
+    }));
+    this.selectedMap.update((map) => {
+      if (!map.has(updated.id)) return map;
+      const next = new Map(map);
+      next.set(updated.id, updated);
+      return next;
     });
   }
 

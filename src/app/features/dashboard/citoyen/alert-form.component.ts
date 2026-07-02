@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, DestroyRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -20,18 +20,31 @@ import {
 import { formatCoordinate, isInMorocco } from '../../../shared/morocco-location';
 import { AlertsService } from '../../../services/alerts.service';
 
+export type StagedMediaType = 'image' | 'video';
+
+export interface StagedMedia {
+  file: File;
+  type: StagedMediaType;
+  previewUrl: string;
+}
+
+export interface AlertFormSubmit {
+  payload: CreateAlertRequest;
+  newMedia: StagedMedia[];
+}
+
 @Component({
   selector: 'app-alert-form',
   standalone: true,
   imports: [ReactiveFormsModule, LocationMapPickerComponent],
   templateUrl: './alert-form.component.html'
 })
-export class AlertFormComponent implements OnInit {
+export class AlertFormComponent implements OnInit, OnDestroy {
   @Input() editing: AlertResponse | null = null;
   @Input() categories: { id: number; name: string }[] = [];
   @Input() serverError = '';
 
-  @Output() readonly submitted = new EventEmitter<CreateAlertRequest>();
+  @Output() readonly submitted = new EventEmitter<AlertFormSubmit>();
   @Output() readonly cancelled = new EventEmitter<void>();
 
   private readonly fb = inject(FormBuilder);
@@ -66,6 +79,11 @@ export class AlertFormComponent implements OnInit {
   localImages: string[] = [];
   localVideos: string[] = [];
 
+  // Newly picked files staged for upload on submit (create or edit).
+  // Actual Cloudinary upload + attach is orchestrated by the parent dashboard.
+  stagedMedia: StagedMedia[] = [];
+  private readonly maxMedia = 8;
+
   // Per-URL state: undefined = normal | 'selected' = marked for delete | 'deleting' = API in progress
   imageState = new Map<string, 'selected' | 'deleting'>();
   videoState = new Map<string, 'selected' | 'deleting'>();
@@ -84,6 +102,42 @@ export class AlertFormComponent implements OnInit {
         priority: this.editing.priority
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.stagedMedia.forEach((m) => URL.revokeObjectURL(m.previewUrl));
+  }
+
+  get stagedImages(): StagedMedia[] {
+    return this.stagedMedia.filter((m) => m.type === 'image');
+  }
+
+  get stagedVideos(): StagedMedia[] {
+    return this.stagedMedia.filter((m) => m.type === 'video');
+  }
+
+  onStageFiles(event: Event, type: StagedMediaType): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files || files.length === 0) return;
+    this.mediaError = '';
+    for (const file of Array.from(files)) {
+      if (this.stagedMedia.length >= this.maxMedia) {
+        this.mediaError = `Vous pouvez joindre au maximum ${this.maxMedia} médias.`;
+        break;
+      }
+      this.stagedMedia = [
+        ...this.stagedMedia,
+        { file, type, previewUrl: URL.createObjectURL(file) }
+      ];
+    }
+    // Reset so selecting the same file again re-triggers change
+    input.value = '';
+  }
+
+  removeStaged(item: StagedMedia): void {
+    URL.revokeObjectURL(item.previewUrl);
+    this.stagedMedia = this.stagedMedia.filter((m) => m !== item);
   }
 
   toggleImageSelect(url: string): void {
@@ -227,7 +281,7 @@ export class AlertFormComponent implements OnInit {
       categoryId: Number(raw.categoryId),
       priority: raw.priority
     };
-    this.submitted.emit(payload);
+    this.submitted.emit({ payload, newMedia: this.stagedMedia });
   }
 
   private async reverseGeocodeAndApply(lat: number, lng: number): Promise<void> {

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="UrbanAlert">
+  <!--
+    UrbanAlert mark — a Moroccan zellige eight-pointed star (khatim / Rub el Hizb),
+    the geometry found across medina tilework, doubling as a broadcast "signal burst".
+    The center beacon is the reported location pinned within it.
+  -->
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- tile -->
+  <rect x="3" y="3" width="58" height="58" rx="14" fill="#15171c" stroke="#2b303a" stroke-width="1.5"/>
+
+  <!-- faint outer signal ring -->
+  <circle cx="32" cy="32" r="24.5" fill="none" stroke="#d6ff3e" stroke-width="1" opacity="0.14"/>
+
+  <!-- zellige octagram = two overlapping squares -->
+  <g filter="url(#glow)">
+    <path fill="#d6ff3e" d="M16 16 H48 V48 H16 Z M32 9.5 L54.5 32 L32 54.5 L9.5 32 Z"/>
+  </g>
+
+  <!-- location beacon eye -->
+  <circle cx="32" cy="32" r="7.4" fill="#15171c"/>
+  <circle cx="32" cy="32" r="3.1" fill="#d6ff3e"/>
+</svg>
