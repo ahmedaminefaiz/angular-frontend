@@ -112,6 +112,38 @@
           <p class="text-sm leading-relaxed text-ink-dim">{{ selectedIntervention()!.description }}</p>
         </div>
 
+        <div class="panel-2 rounded-lg border border-line p-3">
+          <p class="microlabel mb-1.5">Lieu exact du signalement</p>
+          @if (loadingAlertInfo()) {
+            <div class="flex justify-center py-2"><div class="h-4 w-4 animate-spin rounded-full border-2 border-signal border-t-transparent"></div></div>
+          } @else if (reportLocation()) {
+            @if (reportLocation()!.address) {
+              <p class="text-sm font-medium text-ink">{{ reportLocation()!.address }}</p>
+            }
+            <a [href]="'https://www.google.com/maps?q=' + reportLocation()!.latitude + ',' + reportLocation()!.longitude" target="_blank" rel="noopener" class="mono mt-1 inline-flex items-center gap-1.5 text-xs text-signal hover:underline">
+              <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              {{ reportLocation()!.latitude | number:'1.5-5' }}, {{ reportLocation()!.longitude | number:'1.5-5' }}
+            </a>
+          } @else {
+            <p class="text-sm italic text-faint">Lieu non disponible</p>
+          }
+        </div>
+
+        <div>
+          <p class="microlabel mb-2">Images des signalement des citoyens</p>
+          @if (loadingAlertInfo()) {
+            <div class="flex justify-center py-4"><div class="h-5 w-5 animate-spin rounded-full border-2 border-signal border-t-transparent"></div></div>
+          } @else if (citizenImages().length === 0) {
+            <p class="text-sm italic text-faint">Aucune image dans les signalements liés.</p>
+          } @else {
+            <div class="flex flex-wrap gap-3">
+              @for (photo of citizenImages(); track photo) {
+                <img [src]="photo" alt="Photo" class="h-20 w-20 cursor-pointer rounded-lg border border-line object-cover transition hover:opacity-80" (click)="viewedImage.set(photo)">
+              }
+            </div>
+          }
+        </div>
+
         @if (selectedIntervention()!.photos.length > 0) {
           <div>
             <p class="microlabel mb-2">Photos du super agent</p>

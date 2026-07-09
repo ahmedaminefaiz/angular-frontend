@@ -6,7 +6,7 @@
       <p class="microlabel mb-2">Super-agent · dossiers</p>
       <h1 class="text-2xl font-bold tracking-tight text-ink">Mes problèmes</h1>
     </div>
-    <p class="mono text-xs text-faint">{{ problemsPage().totalElements }} PROBLÈME(S) AU TOTAL</p>
+    <p class="mono text-xs text-faint">{{ allProblems().length }} PROBLÈME(S) AU TOTAL</p>
   </div>
 
   @if (successMessage()) { <div class="banner banner-ok">{{ successMessage() }}</div> }
@@ -15,7 +15,7 @@
   <!-- Filter -->
   <div class="flex items-center gap-3">
     <label class="microlabel">Filtrer</label>
-    <select [(ngModel)]="statusFilter" class="field max-w-xs">
+    <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()" class="field max-w-xs">
       @for (s of allStatuses; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
     </select>
   </div>
@@ -26,7 +26,7 @@
     <div class="panel border-dashed py-16 text-center"><p class="text-muted">Aucun problème trouvé.</p></div>
   } @else {
     <div class="space-y-3">
-      @for (problem of filteredProblems; track problem.id) {
+      @for (problem of pagedProblems; track problem.id) {
         <div class="panel">
 
           <!-- Main row -->
@@ -176,14 +176,14 @@
     </div>
 
     <!-- Pagination -->
-    @if (problemsPage().totalPages > 1) {
+    @if (totalPages.length > 1) {
       <div class="flex items-center justify-between pt-2">
-        <p class="mono text-xs text-faint">PAGE {{ problemsPage().number + 1 }} / {{ problemsPage().totalPages }}</p>
+        <p class="mono text-xs text-faint">PAGE {{ currentPage + 1 }} / {{ totalPages.length }}</p>
         <div class="flex gap-1">
           @for (p of totalPages; track p) {
-            <button (click)="loadProblems(p)" class="mono rounded-lg px-3 py-1 text-sm transition-colors"
-              [class.bg-signal]="p === problemsPage().number" [class.text-on-signal]="p === problemsPage().number" [class.font-bold]="p === problemsPage().number"
-              [class.text-muted]="p !== problemsPage().number" [class.hover:bg-surface-2]="p !== problemsPage().number">{{ p + 1 }}</button>
+            <button (click)="goToPage(p)" class="mono rounded-lg px-3 py-1 text-sm transition-colors"
+              [class.bg-signal]="p === currentPage" [class.text-on-signal]="p === currentPage" [class.font-bold]="p === currentPage"
+              [class.text-muted]="p !== currentPage" [class.hover:bg-surface-2]="p !== currentPage">{{ p + 1 }}</button>
           }
         </div>
       </div>
