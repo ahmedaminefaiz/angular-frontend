@@ -112,11 +112,45 @@
           <p class="text-sm leading-relaxed text-ink-dim">{{ selectedIntervention()!.description }}</p>
         </div>
 
+        <div class="panel-2 rounded-lg border border-line p-3">
+          <p class="microlabel mb-1.5">Lieu exact du signalement</p>
+          @if (loadingAlertInfo()) {
+            <div class="flex justify-center py-2"><div class="h-4 w-4 animate-spin rounded-full border-2 border-signal border-t-transparent"></div></div>
+          } @else if (reportLocation()) {
+            @if (reportLocation()!.address) {
+              <p class="text-sm font-medium text-ink">{{ reportLocation()!.address }}</p>
+            }
+            <a [href]="'https://www.google.com/maps?q=' + reportLocation()!.latitude + ',' + reportLocation()!.longitude" target="_blank" rel="noopener" class="mono mt-1 inline-flex items-center gap-1.5 text-xs text-signal hover:underline">
+              <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              {{ reportLocation()!.latitude | number:'1.5-5' }}, {{ reportLocation()!.longitude | number:'1.5-5' }}
+            </a>
+          } @else {
+            <p class="text-sm italic text-faint">Lieu non disponible</p>
+          }
+        </div>
+
+        <div>
+          <p class="microlabel mb-2">Images des signalement des citoyens</p>
+          @if (loadingAlertInfo()) {
+            <div class="flex justify-center py-4"><div class="h-5 w-5 animate-spin rounded-full border-2 border-signal border-t-transparent"></div></div>
+          } @else if (citizenImages().length === 0) {
+            <p class="text-sm italic text-faint">Aucune image dans les signalements liés.</p>
+          } @else {
+            <div class="flex flex-wrap gap-3">
+              @for (photo of citizenImages(); track photo) {
+                <img [src]="photo" alt="Photo" class="h-20 w-20 cursor-pointer rounded-lg border border-line object-cover transition hover:opacity-80" (click)="viewedImage.set(photo)">
+              }
+            </div>
+          }
+        </div>
+
         @if (selectedIntervention()!.photos.length > 0) {
           <div>
             <p class="microlabel mb-2">Photos du super agent</p>
             <div class="flex flex-wrap gap-3">
-              @for (photo of selectedIntervention()!.photos; track photo) { <img [src]="photo" alt="Photo" class="h-20 w-20 rounded-lg border border-line object-cover"> }
+              @for (photo of selectedIntervention()!.photos; track photo) {
+                <img [src]="photo" alt="Photo" class="h-20 w-20 cursor-pointer rounded-lg border border-line object-cover transition hover:opacity-80" (click)="viewedImage.set(photo)">
+              }
             </div>
           </div>
         }
@@ -135,10 +169,19 @@
                     <span class="mono text-[0.7rem] text-faint">{{ update.statusDate | date:'dd/MM/yy HH:mm' }}</span>
                     <span class="chip" [class]="getStatusClass(update.status)">{{ update.statusLabel }}</span>
                   </div>
-                  <p class="whitespace-pre-line text-sm leading-relaxed text-ink-dim">{{ update.rapport }}</p>
+                  @if (isPdfReport(update.rapport)) {
+                    <a [href]="update.rapport" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-medium text-signal hover:underline">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H8a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v11a2 2 0 01-2 2z"/></svg>
+                      Télécharger le rapport (PDF)
+                    </a>
+                  } @else {
+                    <p class="whitespace-pre-line text-sm leading-relaxed text-ink-dim">{{ update.rapport }}</p>
+                  }
                   @if (update.photos.length > 0) {
                     <div class="mt-2 flex flex-wrap gap-2">
-                      @for (photo of update.photos; track photo) { <img [src]="photo" alt="Photo" class="h-16 w-16 rounded-lg border border-line object-cover"> }
+                      @for (photo of update.photos; track photo) {
+                        <img [src]="photo" alt="Photo" class="h-16 w-16 cursor-pointer rounded-lg border border-line object-cover transition hover:opacity-80" (click)="viewedImage.set(photo)">
+                      }
                     </div>
                   }
                 </div>
@@ -185,14 +228,48 @@
         @if (errorMessage()) { <div class="banner banner-crit">{{ errorMessage() }}</div> }
 
         <div>
-          <div class="mb-1 flex items-center justify-between">
+          <div class="mb-2 flex items-center justify-between">
             <label class="field-label mb-0">Rapport <span class="text-crit">*</span></label>
-            <span class="mono text-xs text-faint">{{ rapportLength }} / 5000</span>
+            <div class="flex gap-1.5">
+              <button type="button" class="btn btn-sm" [class.btn-signal]="reportMode() === 'text'" [class.btn-ghost]="reportMode() !== 'text'" (click)="setReportMode('text')">Texte</button>
+              <button type="button" class="btn btn-sm" [class.btn-signal]="reportMode() === 'pdf'" [class.btn-ghost]="reportMode() !== 'pdf'" (click)="setReportMode('pdf')">PDF</button>
+            </div>
           </div>
-          <textarea formControlName="rapport" rows="4" class="field resize-none" placeholder="Décrivez les actions réalisées…"></textarea>
+
+          @if (reportMode() === 'text') {
+            <div class="mb-1 flex justify-end"><span class="mono text-xs text-faint">{{ rapportLength }} / 5000</span></div>
+            <textarea formControlName="rapport" rows="4" class="field resize-none" placeholder="Décrivez les actions réalisées…"></textarea>
+          } @else {
+            @if (!form.controls.rapport.value) {
+              <input type="file" accept="application/pdf" class="hidden" #reportFileInput (change)="onReportPdfSelected($event)">
+              <button type="button" [disabled]="uploadingReportPdf()" (click)="reportFileInput.click()" class="inline-flex items-center gap-2 rounded-lg border border-dashed border-line-strong bg-surface-2 px-3 py-2 text-xs font-medium text-muted transition hover:border-signal hover:text-signal disabled:opacity-50">
+                @if (uploadingReportPdf()) {
+                  <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                  Upload en cours…
+                } @else {
+                  <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  Uploader le rapport PDF
+                }
+              </button>
+            } @else {
+              <div class="flex items-center justify-between rounded-lg border border-line bg-surface-2 px-3 py-2">
+                <span class="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-ink-dim">
+                  <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/></svg>
+                  <span class="truncate">{{ reportPdfName() || 'Rapport PDF' }}</span>
+                </span>
+                <button type="button" title="Retirer" (click)="removeReportPdf()" class="shrink-0 text-faint transition hover:text-crit">
+                  <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+            }
+            @if (reportPdfError()) { <p class="mt-1 text-xs text-crit">{{ reportPdfError() }}</p> }
+          }
+
           @if (form.controls.rapport.touched && form.controls.rapport.errors) {
             <p class="mt-1 text-xs text-crit">
-              @if (form.controls.rapport.errors['required']) { Le rapport est obligatoire. } @else if (form.controls.rapport.errors['maxlength']) { 5000 caractères maximum. }
+              @if (form.controls.rapport.errors['required']) {
+                @if (reportMode() === 'pdf') { Veuillez uploader un rapport PDF. } @else { Le rapport est obligatoire. }
+              } @else if (form.controls.rapport.errors['maxlength']) { 5000 caractères maximum. }
             </p>
           }
         </div>
@@ -207,8 +284,13 @@
 
         <div>
           <label class="field-label">Date et heure de l'action <span class="text-crit">*</span></label>
-          <input type="datetime-local" formControlName="statusDate" class="field" />
-          @if (form.controls.statusDate.touched && form.controls.statusDate.errors) { <p class="mt-1 text-xs text-crit">La date de l'action est obligatoire.</p> }
+          <input type="datetime-local" formControlName="statusDate" class="field" [min]="minStatusDate()" />
+          @if (form.controls.statusDate.touched && form.controls.statusDate.errors) {
+            <p class="mt-1 text-xs text-crit">
+              @if (form.controls.statusDate.errors['required']) { La date de l'action est obligatoire. }
+              @else if (form.controls.statusDate.errors['minDate']) { La date ne peut pas être antérieure à la date de création de l'intervention. }
+            </p>
+          }
         </div>
 
         <div>
@@ -252,3 +334,5 @@
     </div>
   </div>
 }
+
+<app-image-lightbox [imageUrl]="viewedImage()" (closed)="viewedImage.set(null)" />

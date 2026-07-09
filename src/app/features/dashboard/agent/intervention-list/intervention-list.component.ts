@@ -1,10 +1,15 @@
-import { Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { AbstractControl, ReactiveFormsModule, FormBuilder, ValidationErrors, Validators } from '@angular/forms';
+import { Subscription, forkJoin, of, switchMap } from 'rxjs';
 import { InterventionService } from '../../../../services/intervention.service';
 import { CloudinaryService } from '../../../../services/cloudinary.service';
 import { TokenService } from '../../../../core/services/token.service';
+import { ProblemsService } from '../../../../services/problems.service';
+import { AlertsService } from '../../../../services/alerts.service';
+import { ImageLightboxComponent } from '../../../../shared/image-lightbox.component';
+import { isPdfReport } from '../../../../shared/report-utils';
+import { AlertResponse } from '../../../../models/alert.models';
 import {
   InterventionResponse,
   InterventionStatus,
@@ -16,13 +21,15 @@ import {
 @Component({
   selector: 'app-intervention-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ImageLightboxComponent],
   templateUrl: './intervention-list.component.html'
 })
 export class InterventionListComponent implements OnInit, OnDestroy {
   private readonly interventionService = inject(InterventionService);
   private readonly cloudinaryService = inject(CloudinaryService);
   private readonly tokenService = inject(TokenService);
+  private readonly problemsService = inject(ProblemsService);
+  private readonly alertsService = inject(AlertsService);
   private readonly fb = inject(FormBuilder);
   private readonly subscriptions = new Subscription();
 
@@ -38,15 +45,31 @@ export class InterventionListComponent implements OnInit, OnDestroy {
   readonly selectedIntervention = signal<InterventionResponse | null>(null);
   readonly showDetailModal = signal(false);
   readonly showEditModal = signal(false);
+  readonly viewedImage = signal<string | null>(null);
+
+  // Edit modal — earliest date/time allowed for the new status (creation date of the intervention)
+  readonly minStatusDate = computed(() => {
+    const intervention = this.selectedIntervention();
+    return intervention ? this.toDatetimeLocal(intervention.interventionDate) : null;
+  });
 
   // Detail modal — update history
   readonly interventionUpdates = signal<InterventionUpdateResponse[]>([]);
   readonly loadingUpdates = signal(false);
 
+  // Detail modal — exact location of the problem's first alert + images from all its alerts
+  readonly reportLocation = signal<AlertResponse | null>(null);
+  readonly citizenImages = signal<string[]>([]);
+  readonly loadingAlertInfo = signal(false);
+
   // Edit modal — new update form
   readonly uploadingPhoto = signal(false);
   readonly updatePhotos = signal<string[]>([]);
   readonly photoError = signal('');
+  readonly reportMode = signal<'text' | 'pdf'>('text');
+  readonly uploadingReportPdf = signal(false);
+  readonly reportPdfName = signal('');
+  readonly reportPdfError = signal('');
   readonly submitting = signal(false);
   readonly successMessage = signal('');
   readonly errorMessage = signal('');
@@ -87,7 +110,7 @@ export class InterventionListComponent implements OnInit, OnDestroy {
 
     const sub = obs.subscribe({
       next: (response) => {
-        this.interventions.set(response.content);
+        this.interventions.set(this.sortInterventions(response.content));
         this.totalElements.set(response.totalElements);
         this.totalPages.set(response.totalPages);
         this.currentPage.set(response.number);
@@ -98,6 +121,15 @@ export class InterventionListComponent implements OnInit, OnDestroy {
       }
     });
     this.subscriptions.add(sub);
+  }
+
+  private sortInterventions(list: InterventionResponse[]): InterventionResponse[] {
+    return [...list].sort((a, b) => {
+      const aClosed = a.status === 'CLOTUREE';
+      const bClosed = b.status === 'CLOTUREE';
+      if (aClosed !== bClosed) return aClosed ? 1 : -1;
+      return new Date(b.interventionDate).getTime() - new Date(a.interventionDate).getTime();
+    });
   }
 
   refresh(): void {
@@ -114,6 +146,9 @@ export class InterventionListComponent implements OnInit, OnDestroy {
     this.selectedIntervention.set(intervention);
     this.interventionUpdates.set([]);
     this.loadingUpdates.set(true);
+    this.reportLocation.set(null);
+    this.citizenImages.set([]);
+    this.loadingAlertInfo.set(true);
     this.showDetailModal.set(true);
 
     const sub = this.interventionService.getUpdates(intervention.id).subscribe({
@@ -126,6 +161,23 @@ export class InterventionListComponent implements OnInit, OnDestroy {
       }
     });
     this.subscriptions.add(sub);
+
+    const alertInfoSub = this.problemsService.getProblemById(intervention.problemId).pipe(
+      switchMap(problem => {
+        const alertIds = problem.alerts.map(a => a.id);
+        return alertIds.length > 0 ? forkJoin(alertIds.map(id => this.alertsService.getAlertById(id))) : of([]);
+      })
+    ).subscribe({
+      next: (alerts) => {
+        this.reportLocation.set(alerts[0] ?? null);
+        this.citizenImages.set(alerts.flatMap(a => a.images));
+        this.loadingAlertInfo.set(false);
+      },
+      error: () => {
+        this.loadingAlertInfo.set(false);
+      }
+    });
+    this.subscriptions.add(alertInfoSub);
   }
 
   // ========== Edit Modal ==========
@@ -135,7 +187,15 @@ export class InterventionListComponent implements OnInit, OnDestroy {
     this.errorMessage.set('');
     this.photoError.set('');
     this.updatePhotos.set([]);
+    this.reportMode.set('text');
+    this.reportPdfName.set('');
+    this.reportPdfError.set('');
     this.form.reset({ rapport: '', status: '', statusDate: '' });
+    this.form.controls.statusDate.setValidators([
+      Validators.required,
+      this.minDateValidator(intervention.interventionDate)
+    ]);
+    this.form.controls.statusDate.updateValueAndValidity();
     this.showEditModal.set(true);
   }
 
@@ -146,6 +206,10 @@ export class InterventionListComponent implements OnInit, OnDestroy {
     this.photoError.set('');
     this.errorMessage.set('');
     this.updatePhotos.set([]);
+    this.reportPdfName.set('');
+    this.reportPdfError.set('');
+    this.reportLocation.set(null);
+    this.citizenImages.set([]);
   }
 
   canEdit(intervention: InterventionResponse): boolean {
@@ -186,6 +250,53 @@ export class InterventionListComponent implements OnInit, OnDestroy {
     this.subscriptions.add(sub);
   }
 
+  // ========== Rapport: texte ou PDF ==========
+
+  readonly isPdfReport = isPdfReport;
+
+  setReportMode(mode: 'text' | 'pdf'): void {
+    this.reportMode.set(mode);
+    this.reportPdfName.set('');
+    this.reportPdfError.set('');
+    this.form.patchValue({ rapport: '' });
+  }
+
+  onReportPdfSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    const interv = this.selectedIntervention();
+    if (!file || !interv) return;
+
+    if (file.type !== 'application/pdf') {
+      this.reportPdfError.set('Seuls les fichiers PDF sont acceptés.');
+      (event.target as HTMLInputElement).value = '';
+      return;
+    }
+
+    this.uploadingReportPdf.set(true);
+    this.reportPdfError.set('');
+
+    const folder = `interventions/${interv.id}/updates/reports`;
+    const sub = this.cloudinaryService.upload(file, 'raw', folder).subscribe({
+      next: (url) => {
+        this.uploadingReportPdf.set(false);
+        this.reportPdfName.set(file.name);
+        this.form.patchValue({ rapport: url });
+      },
+      error: () => {
+        this.uploadingReportPdf.set(false);
+        this.reportPdfError.set("Échec de l'upload du PDF. Réessayez.");
+      }
+    });
+    this.subscriptions.add(sub);
+
+    (event.target as HTMLInputElement).value = '';
+  }
+
+  removeReportPdf(): void {
+    this.reportPdfName.set('');
+    this.form.patchValue({ rapport: '' });
+  }
+
   // ========== Photos for new update ==========
 
   onPhotoFileSelected(event: Event): void {
@@ -218,9 +329,24 @@ export class InterventionListComponent implements OnInit, OnDestroy {
 
   // ========== Helpers ==========
 
+  private minDateValidator(minIso: string) {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      const min = new Date(minIso);
+      const value = new Date(control.value);
+      return value < min ? { minDate: true } : null;
+    };
+  }
+
+  private toDatetimeLocal(iso: string): string {
+    const date = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
   private updateLocalIntervention(updated: InterventionResponse): void {
     this.interventions.update(list =>
-      list.map(i => i.id === updated.id ? updated : i)
+      this.sortInterventions(list.map(i => i.id === updated.id ? updated : i))
     );
   }
 

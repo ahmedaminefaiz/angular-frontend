@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
-import { ApiPage } from '../../../../models/alert.models';
+import { forkJoin, map, of, switchMap } from 'rxjs';
 import { ProblemResponse, ProblemStatus } from '../../../../models/problem.models';
 import { UserSummaryResponse } from '../../../../models/user-management.models';
 import {
@@ -16,19 +16,20 @@ import { UserManagementService } from '../../../../services/user-management.serv
 import { InterventionService } from '../../../../services/intervention.service';
 import { EditProblemFormComponent } from './edit-problem-form.component';
 import { InterventionCreateFormComponent } from './intervention-create-form.component';
+import { ImageLightboxComponent } from '../../../../shared/image-lightbox.component';
+import { isPdfReport } from '../../../../shared/report-utils';
 
 @Component({
   selector: 'app-super-agent-problems',
   standalone: true,
-  imports: [FormsModule, SlicePipe, EditProblemFormComponent, InterventionCreateFormComponent],
+  imports: [FormsModule, SlicePipe, EditProblemFormComponent, InterventionCreateFormComponent, ImageLightboxComponent],
   templateUrl: './super-agent-problems.component.html'
 })
 export class SuperAgentProblemsComponent implements OnInit {
   private readonly interventionService = inject(InterventionService);
 
-  readonly problemsPage = signal<ApiPage<ProblemResponse>>({
-    content: [], totalElements: 0, totalPages: 0, size: 10, number: 0
-  });
+  readonly allProblems = signal<ProblemResponse[]>([]);
+  readonly pageSize = 5;
   readonly loading = signal(true);
   readonly error = signal('');
   readonly successMessage = signal('');
@@ -46,6 +47,8 @@ export class SuperAgentProblemsComponent implements OnInit {
   readonly showHistoryForIntervention = signal<number | null>(null);
   readonly interventionHistory = signal<InterventionUpdateResponse[]>([]);
   readonly loadingHistory = signal(false);
+  readonly viewedImage = signal<string | null>(null);
+  readonly isPdfReport = isPdfReport;
 
   readonly interventionStatusLabels = INTERVENTION_STATUS_LABELS;
   readonly interventionActionTypeLabels = INTERVENTION_ACTION_TYPE_LABELS;
@@ -74,13 +77,26 @@ export class SuperAgentProblemsComponent implements OnInit {
     });
   }
 
-  loadProblems(page = 0): void {
+  /** Charge la totalité des problèmes du super-agent (toutes les pages backend confondues),
+   *  pour pouvoir filtrer et paginer côté client de façon cohérente (5 par page, peu importe le filtre actif). */
+  loadProblems(): void {
     this.loading.set(true);
     this.error.set('');
-    this.currentPage = page;
-    this.problemsService.getMyProblems(page).subscribe({
-      next: (data) => {
-        this.problemsPage.set(data);
+    const fetchSize = 100;
+    this.problemsService.getMyProblems(0, fetchSize).pipe(
+      switchMap(first => {
+        if (first.totalPages <= 1) return of(first.content);
+        const remainingPages = Array.from({ length: first.totalPages - 1 }, (_, i) =>
+          this.problemsService.getMyProblems(i + 1, fetchSize)
+        );
+        return forkJoin(remainingPages).pipe(
+          map(pages => [...first.content, ...pages.flatMap(p => p.content)])
+        );
+      })
+    ).subscribe({
+      next: (all) => {
+        this.allProblems.set(this.sortProblemsByDateDesc(all));
+        this.currentPage = 0;
         this.loading.set(false);
       },
       error: () => {
@@ -90,9 +106,26 @@ export class SuperAgentProblemsComponent implements OnInit {
     });
   }
 
+  private sortProblemsByDateDesc(list: ProblemResponse[]): ProblemResponse[] {
+    return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
   get filteredProblems(): ProblemResponse[] {
-    if (!this.statusFilter) return this.problemsPage().content;
-    return this.problemsPage().content.filter(p => p.status === this.statusFilter);
+    const all = this.allProblems();
+    return this.statusFilter ? all.filter(p => p.status === this.statusFilter) : all;
+  }
+
+  get pagedProblems(): ProblemResponse[] {
+    const start = this.currentPage * this.pageSize;
+    return this.filteredProblems.slice(start, start + this.pageSize);
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 0;
+  }
+
+  goToPage(page: number): void {
+    this.currentPage = page;
   }
 
   toggleExpand(id: number): void {
@@ -113,7 +146,7 @@ export class SuperAgentProblemsComponent implements OnInit {
       next: (page) => {
         this.problemInterventions.update(map => {
           const updated = new Map(map);
-          updated.set(problemId, page.content);
+          updated.set(problemId, this.sortInterventions(page.content));
           return updated;
         });
         this.loadingInterventions.set(null);
@@ -124,16 +157,22 @@ export class SuperAgentProblemsComponent implements OnInit {
     });
   }
 
+  private sortInterventions(list: InterventionResponse[]): InterventionResponse[] {
+    return [...list].sort((a, b) => {
+      const aClosed = a.status === 'CLOTUREE';
+      const bClosed = b.status === 'CLOTUREE';
+      if (aClosed !== bClosed) return aClosed ? 1 : -1;
+      return new Date(b.interventionDate).getTime() - new Date(a.interventionDate).getTime();
+    });
+  }
+
   openEdit(problem: ProblemResponse): void {
     this.editingProblem.set(problem);
   }
 
   onEditSubmitted(updated: ProblemResponse): void {
     this.editingProblem.set(null);
-    this.problemsPage.update(page => ({
-      ...page,
-      content: page.content.map(p => p.id === updated.id ? updated : p)
-    }));
+    this.allProblems.update(list => list.map(p => p.id === updated.id ? updated : p));
     this.flash('Problème mis à jour avec succès.');
   }
 
@@ -169,11 +208,7 @@ export class SuperAgentProblemsComponent implements OnInit {
     if (!confirm(`Supprimer le problème #${problem.id} ? Cette action est irréversible.`)) return;
     this.problemsService.deleteProblem(problem.id).subscribe({
       next: () => {
-        this.problemsPage.update(page => ({
-          ...page,
-          content: page.content.filter(p => p.id !== problem.id),
-          totalElements: page.totalElements - 1
-        }));
+        this.allProblems.update(list => list.filter(p => p.id !== problem.id));
         this.flash('Problème supprimé.');
       },
       error: (err) => this.error.set(err?.error?.message ?? 'Impossible de supprimer ce problème.')
@@ -183,10 +218,7 @@ export class SuperAgentProblemsComponent implements OnInit {
   changeStatus(problem: ProblemResponse, newStatus: ProblemStatus): void {
     this.problemsService.changeStatus(problem.id, { newStatus }).subscribe({
       next: (updated) => {
-        this.problemsPage.update(page => ({
-          ...page,
-          content: page.content.map(p => p.id === updated.id ? updated : p)
-        }));
+        this.allProblems.update(list => list.map(p => p.id === updated.id ? updated : p));
         this.flash(`Statut changé en "${this.statusLabel(newStatus)}".`);
       },
       error: (err) => this.error.set(err?.error?.message ?? 'Impossible de changer le statut.')
@@ -194,7 +226,8 @@ export class SuperAgentProblemsComponent implements OnInit {
   }
 
   get totalPages(): number[] {
-    return Array.from({ length: this.problemsPage().totalPages }, (_, i) => i);
+    const pageCount = Math.ceil(this.filteredProblems.length / this.pageSize);
+    return Array.from({ length: pageCount }, (_, i) => i);
   }
 
   statusLabel(status: string): string {

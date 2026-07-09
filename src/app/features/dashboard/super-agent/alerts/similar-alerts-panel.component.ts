@@ -68,10 +68,28 @@ export class SimilarAlertsPanelComponent implements OnChanges {
         this.similar.set(results);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('Impossible de charger les similarités.');
+      error: (err) => {
+        console.error('getSimilarAlerts failed', err);
+        this.error.set(this.extractError(err));
         this.loading.set(false);
       }
     });
+  }
+
+  private extractError(err: unknown): string {
+    if (err && typeof err === 'object') {
+      const httpErr = err as { error?: { message?: string; error?: string } | string; status?: number; message?: string };
+      if (httpErr.status === 0) return 'Impossible de charger les similarités : erreur réseau (serveur injoignable).';
+      if (typeof httpErr.error === 'string' && httpErr.error) {
+        return `Impossible de charger les similarités : ${httpErr.error}`;
+      }
+      if (httpErr.error && typeof httpErr.error === 'object') {
+        const msg = httpErr.error.message || httpErr.error.error;
+        if (msg) return `Impossible de charger les similarités : ${msg}`;
+      }
+      if (httpErr.status) return `Impossible de charger les similarités (HTTP ${httpErr.status}).`;
+      if (httpErr.message) return `Impossible de charger les similarités : ${httpErr.message}`;
+    }
+    return 'Impossible de charger les similarités : erreur inconnue.';
   }
 }
