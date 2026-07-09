@@ -157,6 +157,13 @@
                             }
                           </div>
                         </div>
+                        @if (interv.photos.length > 0) {
+                          <div class="mt-2 flex flex-wrap gap-2">
+                            @for (photo of interv.photos; track photo) {
+                              <img [src]="photo" alt="Photo" class="h-14 w-14 cursor-pointer rounded-lg border border-line object-cover transition hover:opacity-80" (click)="viewedImage.set(photo)">
+                            }
+                          </div>
+                        }
                       </div>
                     }
                   </div>
@@ -213,10 +220,20 @@
                   <span class="mono text-[0.7rem] text-faint">{{ update.createdAt | slice:0:10 }} {{ (update.createdAt | slice:11:16) }}</span>
                   <span class="chip" [class]="getInterventionStatusClass(update.status)">{{ update.statusLabel }}</span>
                 </div>
-                <p class="whitespace-pre-line text-sm text-ink-dim">{{ update.rapport }}</p>
+                <p class="mono mb-1.5 text-[0.7rem] text-faint">Date de l'action : {{ update.statusDate | slice:0:10 }} {{ (update.statusDate | slice:11:16) }}</p>
+                @if (isPdfReport(update.rapport)) {
+                  <a [href]="update.rapport" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm font-medium text-signal hover:underline">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H8a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v11a2 2 0 01-2 2z"/></svg>
+                    Télécharger le rapport (PDF)
+                  </a>
+                } @else {
+                  <p class="whitespace-pre-line text-sm text-ink-dim">{{ update.rapport }}</p>
+                }
                 @if (update.photos.length > 0) {
                   <div class="mt-2 flex gap-2">
-                    @for (photo of update.photos; track photo) { <img [src]="photo" class="h-16 w-16 rounded-lg border border-line object-cover" /> }
+                    @for (photo of update.photos; track photo) {
+                      <img [src]="photo" class="h-16 w-16 cursor-pointer rounded-lg border border-line object-cover transition hover:opacity-80" (click)="viewedImage.set(photo)" />
+                    }
                   </div>
                 }
               </div>
@@ -227,3 +244,5 @@
     </div>
   </div>
 }
+
+<app-image-lightbox [imageUrl]="viewedImage()" (closed)="viewedImage.set(null)" />

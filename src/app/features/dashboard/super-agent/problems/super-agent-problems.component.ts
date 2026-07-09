@@ -16,11 +16,13 @@ import { UserManagementService } from '../../../../services/user-management.serv
 import { InterventionService } from '../../../../services/intervention.service';
 import { EditProblemFormComponent } from './edit-problem-form.component';
 import { InterventionCreateFormComponent } from './intervention-create-form.component';
+import { ImageLightboxComponent } from '../../../../shared/image-lightbox.component';
+import { isPdfReport } from '../../../../shared/report-utils';
 
 @Component({
   selector: 'app-super-agent-problems',
   standalone: true,
-  imports: [FormsModule, SlicePipe, EditProblemFormComponent, InterventionCreateFormComponent],
+  imports: [FormsModule, SlicePipe, EditProblemFormComponent, InterventionCreateFormComponent, ImageLightboxComponent],
   templateUrl: './super-agent-problems.component.html'
 })
 export class SuperAgentProblemsComponent implements OnInit {
@@ -46,6 +48,8 @@ export class SuperAgentProblemsComponent implements OnInit {
   readonly showHistoryForIntervention = signal<number | null>(null);
   readonly interventionHistory = signal<InterventionUpdateResponse[]>([]);
   readonly loadingHistory = signal(false);
+  readonly viewedImage = signal<string | null>(null);
+  readonly isPdfReport = isPdfReport;
 
   readonly interventionStatusLabels = INTERVENTION_STATUS_LABELS;
   readonly interventionActionTypeLabels = INTERVENTION_ACTION_TYPE_LABELS;
